@@ -1,12 +1,22 @@
-import { paginateQuery } from "#/src/lib/utils/pagination";
+import { paginatedQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { omit } from "lodash";
-import { UserCreate, UserFetchList, UserUpdate } from "./user.types";
+import authService from "../auth/auth.service";
+import { User, UserCreate, UserFetchList, UserUpdate } from "./user.types";
 
 async function fetch(id: string) {
   const user = await prisma.users.findUnique({
     where: {
-      xata_id: id,
+      id,
+    },
+  });
+  return user;
+}
+
+async function fetchByEmail(email: string) {
+  const user = await prisma.users.findUnique({
+    where: {
+      email,
     },
   });
   return user;
@@ -19,41 +29,50 @@ async function fetchList(filters?: UserFetchList) {
       name: filters.name,
     };
   }
-  const users = await prisma.users.findMany(paginateQuery(query, filters));
-  return users;
+
+  return paginatedQuery<User>("users", query, filters);
 }
 
-async function create(data: UserCreate) {
-  const user = await prisma.users.create({
-    data: {
-      ...data,
-      bio: data.bio || "",
-    },
-  });
+async function create(data: UserCreate & { password: string }) {
+  const password_hash = await authService.hashPassword(data.password);
+  const user = await prisma.users
+    .create({
+      data: {
+        ...data,
+        password_hash,
+        bio: data.bio || "",
+      },
+    })
+    .catch(() => null);
   return user;
 }
 
 async function update(id: string, data: UserUpdate) {
-  const user = await prisma.users.update({
-    where: {
-      xata_id: id,
-    },
-    data: omit(data, "id"),
-  });
+  const user = await prisma.users
+    .update({
+      where: {
+        id,
+      },
+      data: omit(data, "id"),
+    })
+    .catch(() => null);
   return user;
 }
 
 async function remove(id: string) {
-  const user = await prisma.users.delete({
-    where: {
-      xata_id: id,
-    },
-  });
+  const user = await prisma.users
+    .delete({
+      where: {
+        id,
+      },
+    })
+    .catch(() => null);
   return user;
 }
 
 const userService = {
   fetch,
+  fetchByEmail,
   fetchList,
   create,
   update,

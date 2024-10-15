@@ -18,18 +18,6 @@ export type RenameBy<U, T> = {
     : K]: K extends keyof U ? U[K] : never;
 };
 
-export type PrismaEntity<T> = Omit<
-  RenameBy<
-    T,
-    {
-      xata_id: "id";
-      xata_createdat: "created_at";
-      xata_updatedat: "updated_at";
-    }
-  >,
-  "xata_version"
->;
-
 export type PrismaEntityMutable<T> = Omit<
   T,
   "id" | "created_at" | "updated_at"

@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import { APIResponse } from "../types/misc";
 
 export const isDevEnv = () => {
@@ -19,4 +20,11 @@ export const toResponse = <T>({
     data: data || null,
     error: error || null,
   };
+};
+
+export const randomString = (len: number) => {
+  return Buffer.from(crypto.randomBytes(len))
+    .toString("base64")
+    .replace(/[+/]/g, "")
+    .substring(0, len);
 };
