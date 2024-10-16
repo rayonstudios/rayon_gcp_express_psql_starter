@@ -5,7 +5,7 @@ import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
 import { validateData } from "#/src/middlewares/validation";
 import userService from "#/src/modules/user/user.service";
-import { Body, Controller, Middlewares, Post, Route, Tags } from "tsoa";
+import { Body, Controller, Delete, Middlewares, Post, Route, Tags ,Request} from "tsoa";
 import otpService from "../otp/otp.service";
 import userHelpers from "../user/user.helpers";
 import authSerivce from "./auth.service";
@@ -105,4 +105,44 @@ export class AuthController extends Controller {
 
     return toResponse({ data: "Email successfully verified!" });
   }
+
+
+  @Delete("/signout")
+  public async signout(
+    @Request() req: Request
+  ): Promise<APIResponse<string>> {
+    const authHeader = req.headers.get("authorization");
+    
+    // Extract the access token from the "Bearer <token>" format
+    const accessToken = authHeader && authHeader.split(" ")[1];
+  
+    if (!accessToken) {
+      this.setStatus(errorConst.unAuthenticated.code);
+      return toResponse({ error: errorConst.unAuthenticated.message });
+    }
+  
+    try {
+      // Invalidate only the access token
+      const result = await authSerivce.invalidateToken(accessToken);
+  
+      if (!result) {
+        this.setStatus(errorConst.internal.code);
+        return toResponse({ error: errorConst.internal.message });
+      }
+  
+      return toResponse({
+        data: "Successfully signed out",
+      });
+    } catch (error) {
+      this.setStatus(errorConst.internal.code);
+      return toResponse({ error: errorConst.internal.message });
+    }
+  }
+  
+
+
+
+
 }
+
+

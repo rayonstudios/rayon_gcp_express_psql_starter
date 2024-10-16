@@ -1,6 +1,7 @@
 import { User } from "#/src/modules/user/user.types";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { prisma } from "#/src/lib/utils/prisma";
 
 async function generateTokens(user: User) {
   if (
@@ -52,7 +53,30 @@ async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
+async function invalidateToken(token:string):Promise<boolean>{
+  try {
+    
+    const result = await prisma.tokens.delete({
+      where:{
+        access_tokens:token
+      }
+    })
+
+    if(!result) return false
+    return true
+
+    
+  } catch (error) {
+    
+    console.error("Error invalidating token:", error);
+    return false; // Invalidation failed
+  }
+
+
+}
+
 const authService = {
+  invalidateToken,
   generateTokens,
   verifyToken,
   hashPassword,
