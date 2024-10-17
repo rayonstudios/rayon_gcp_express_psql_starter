@@ -33,15 +33,6 @@ model posts {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model tokens {
-  id String   @unique(map: "_pgroll_new_tokens_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
-  created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
-  access_tokens String   @unique(map: "tokens__pgroll_new_access_tokens_key") @default("\"\"")
-  refresh_tokens String   @unique(map: "tokens__pgroll_new_refresh_tokens_key") @default("\"\"")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
   name String
   bio String
@@ -53,5 +44,6 @@ model users {
   email_verified Boolean  @default(false)
   password_hash String
   email String   @unique(map: "users_email_unique")
+  refresh_tokens String?  @default("\"\"")
   posts posts[]
 }

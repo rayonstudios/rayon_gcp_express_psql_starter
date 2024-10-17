@@ -23,6 +23,8 @@ export const validateAuthentication = async (
   const user = await authService.verifyToken(token, type);
   if (!user) return sendUnAuthResponse();
 
-  res.locals.user = user as AuthUser;
+  //@ts-ignore
+  req._user = user as AuthUser;
+
   next();
 };

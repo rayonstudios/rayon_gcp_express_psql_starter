@@ -5,7 +5,17 @@ import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
 import { validateData } from "#/src/middlewares/validation";
 import userService from "#/src/modules/user/user.service";
-import { Body, Controller, Delete, Middlewares, Post, Route, Tags ,Request} from "tsoa";
+import {
+  Body,
+  Controller,
+  Delete,
+  Middlewares,
+  Post,
+  Route,
+  Tags,
+  Response,
+  Request,
+} from "tsoa";
 import otpService from "../otp/otp.service";
 import userHelpers from "../user/user.helpers";
 import authSerivce from "./auth.service";
@@ -16,6 +26,10 @@ import {
   AuthVerifyEmail,
 } from "./auth.types";
 import authValidations from "./auth.validations";
+import { Request as ExReq } from "express";
+import { getReqUser } from "./auth.helpers";
+import { validateAuthentication } from "#/src/middlewares/authentication";
+
 
 @Route("auth")
 @Tags("Authentication")
@@ -106,43 +120,18 @@ export class AuthController extends Controller {
     return toResponse({ data: "Email successfully verified!" });
   }
 
-
-  @Delete("/signout")
-  public async signout(
-    @Request() req: Request
-  ): Promise<APIResponse<string>> {
-    const authHeader = req.headers.get("authorization");
-    
-    // Extract the access token from the "Bearer <token>" format
-    const accessToken = authHeader && authHeader.split(" ")[1];
-  
-    if (!accessToken) {
-      this.setStatus(errorConst.unAuthenticated.code);
-      return toResponse({ error: errorConst.unAuthenticated.message });
-    }
-  
-    try {
-      // Invalidate only the access token
-      const result = await authSerivce.invalidateToken(accessToken);
-  
-      if (!result) {
-        this.setStatus(errorConst.internal.code);
-        return toResponse({ error: errorConst.internal.message });
-      }
-  
-      return toResponse({
-        data: "Successfully signed out",
+  @Delete("/signoutAll")
+  @Middlewares(validateAuthentication)
+  public async signout(@Request() req: ExReq): Promise<APIResponse<string>> {
+      const user = getReqUser(req)
+      //refresh token version changed
+      await prisma.users.update({
+        where: { id: user.id },
+        data: { refresh_token_version: { increment: 1 } },
       });
-    } catch (error) {
-      this.setStatus(errorConst.internal.code);
-      return toResponse({ error: errorConst.internal.message });
-    }
-  }
+
+      return toResponse({
+        data: "Successfully signedout from all devices",
+      });
   
-
-
-
-
-}
-
-
+    }}
