@@ -50,18 +50,3 @@ export function validateByRole<T extends z.ZodRawShape>(
     } else next();
   };
 }
-
-export function validateRole(roles: Role[]) {
-  return async (_req: Request, res: Response, next: NextFunction) => {
-    const role = res.locals.user?.role;
-    if (roles.includes(role)) {
-      next();
-    } else {
-      return res.status(errorConst.unAuthorized.code).json(
-        toResponse({
-          error: errorConst.unAuthorized.message,
-        })
-      );
-    }
-  };
-}

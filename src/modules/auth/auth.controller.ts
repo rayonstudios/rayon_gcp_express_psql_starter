@@ -1,9 +1,9 @@
-import { APIResponse } from "#/src/lib/types/misc";
+import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { isImage, toResponse } from "#/src/lib/utils";
 import { errorConst } from "#/src/lib/utils/error";
 import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
-import { validateData } from "#/src/middlewares/validation";
+import { validateData } from "#/src/middlewares/validation.middleware";
 import userService from "#/src/modules/user/user.service";
 import {
   Body,
@@ -11,12 +11,16 @@ import {
   FormField,
   Middlewares,
   Post,
+  Request,
   Route,
+  Security,
   Tags,
   UploadedFile,
 } from "tsoa";
+import fileService from "../file/file.service";
 import otpService from "../otp/otp.service";
-import userHelpers from "../user/user.helpers";
+import { sanitizeUser } from "../user/user.helpers";
+import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
 import { AuthLogin, AuthLoginResponse, AuthVerifyEmail } from "./auth.types";
 import authValidations from "./auth.validations";
@@ -47,7 +51,7 @@ export class AuthController extends Controller {
     }
 
     return toResponse({
-      data: { ...tokens, user: userHelpers.sanitize(user) },
+      data: { ...tokens, user: sanitizeUser(user) },
     });
   }
 
@@ -73,32 +77,31 @@ export class AuthController extends Controller {
       return toResponse({ error: errorConst.alreadyExists.message });
     }
 
+    let photoUrl = "";
+    if (photo) {
+      [photoUrl] = await fileService.save([{ ...photo }]);
+    }
     // create user in db
     const user = await userService.create({
       name,
       email,
       password,
       bio,
-      photo: "",
+      photo: photoUrl,
       role: Role.USER,
     });
     if (!user) {
       this.setStatus(errorConst.internal.code);
       return toResponse({ error: errorConst.internal.message });
     }
-
-    // send otp on user's email
     await otpService.send(user);
-
-    // generate tokens
     const tokens = await authSerivce.generateTokens(user);
     if (!tokens) {
       this.setStatus(errorConst.internal.code);
       return toResponse({ error: errorConst.internal.message });
     }
-
     return toResponse({
-      data: { ...tokens, user: userHelpers.sanitize(user) },
+      data: { ...tokens, user: sanitizeUser(user) },
     });
   }
 
@@ -106,7 +109,7 @@ export class AuthController extends Controller {
   @Middlewares(validateData(authValidations.login.omit({ password: true })))
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
-  ): Promise<APIResponse<string>> {
+  ): Promise<APIResponse<Message>> {
     const user = await userService.fetchByEmail(body.email);
     if (!user) {
       this.setStatus(errorConst.notFound.code);
@@ -124,6 +127,20 @@ export class AuthController extends Controller {
       data: { email_verified: true },
     });
 
-    return toResponse({ data: "Email successfully verified!" });
+    return toResponse({ data: { message: "Email successfully verified!" } });
+  }
+
+  @Post("/signoutAll")
+  @Security("jwt")
+  public async signout(@Request() req: ExReq): Promise<APIResponse<Message>> {
+    const user = getReqUser(req);
+    await prisma.users.update({
+      where: { id: user.id },
+      data: { refresh_token_version: { increment: 1 } },
+    });
+
+    return toResponse({
+      data: { message: "Successfully signedout from all devices" },
+    });
   }
 }

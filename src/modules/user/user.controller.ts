@@ -3,8 +3,7 @@ import { toResponse } from "#/src/lib/utils";
 import { errorConst } from "#/src/lib/utils/error";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
-import { validateAuthentication } from "#/src/middlewares/authentication";
-import { validateData, validateRole } from "#/src/middlewares/validation";
+import { validateData } from "#/src/middlewares/validation.middleware";
 import {
   Body,
   Controller,
@@ -16,9 +15,10 @@ import {
   Post,
   Queries,
   Route,
+  Security,
   Tags,
 } from "tsoa";
-import userHelpers from "./user.helpers";
+import { sanitizeUser } from "./user.helpers";
 import userService from "./user.service";
 import {
   SanitizedUser,
@@ -30,7 +30,7 @@ import userValidations from "./user.validations";
 
 @Route("users")
 @Tags("User")
-@Middlewares(validateAuthentication, validateRole([Role.ADMIN])) // controller level middlewares
+@Security("jwt", [Role.ADMIN])
 export class UserController extends Controller {
   @Get("{userId}")
   public async fetch(
@@ -42,7 +42,7 @@ export class UserController extends Controller {
       return toResponse({ error: errorConst.notFound.message });
     }
 
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 
   @Get("/")
@@ -52,7 +52,7 @@ export class UserController extends Controller {
   ): Promise<APIResponse<PaginationResponse<SanitizedUser>>> {
     const res = await userService.fetchList(query);
     return toResponse({
-      data: { ...res, list: res.list.map(userHelpers.sanitize) },
+      data: { ...res, list: res.list.map(sanitizeUser) },
     });
   }
 
@@ -68,7 +68,7 @@ export class UserController extends Controller {
     }
 
     this.setStatus(201);
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 
   @Patch("{userId}")
@@ -82,7 +82,7 @@ export class UserController extends Controller {
       return toResponse({ error: errorConst.notFound.message });
     }
 
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 
   @Delete("{userId}")
@@ -95,6 +95,6 @@ export class UserController extends Controller {
       return toResponse({ error: errorConst.notFound.message });
     }
 
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 }

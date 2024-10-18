@@ -9,8 +9,8 @@
 7. Express
 
 ##### TODOs:
-1. Setup mail templates on Brevo
+1. Setup mail templates on Brevo #completed
 2. Test auth routes and user routes
-3. Add remaining auth routes (signout, signout from all, refresh, forget pass, resend verification email, reset password)
+3. Add remaining auth routes (signout, signout from all-->completed, refresh, forget pass, resend verification email, reset password)
 4. Add missing secrets on infisical
 5. Update README.md (take https://github.com/rayonstudios/rayon_react_starter as an example)

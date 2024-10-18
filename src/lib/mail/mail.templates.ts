@@ -11,7 +11,7 @@ const notification = {
     image?: string;
   }) => {
     return {
-      id: 2,
+      id: 4,
       data: {
         title,
         body,
@@ -33,7 +33,7 @@ const authentication = {
     email: string;
   }) => {
     return {
-      id: 5,
+      id: 1,
       data: {
         otp,
         name,
@@ -52,7 +52,7 @@ const authentication = {
     email: string;
   }) => {
     return {
-      id: 6,
+      id: 2,
       data: {
         otp,
         name,
@@ -72,7 +72,7 @@ const authentication = {
     resetPassLink: string;
   }) => {
     return {
-      id: 7,
+      id: 3,
       data: {
         name,
         inviter,

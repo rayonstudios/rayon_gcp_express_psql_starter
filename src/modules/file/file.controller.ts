@@ -1,22 +1,23 @@
-import { APIResponse } from "#/src/lib/types/misc";
+import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
 import { errorConst } from "#/src/lib/utils/error";
-import { validateAuthentication } from "#/src/middlewares/authentication";
 import {
   Body,
   Controller,
   Delete,
-  Middlewares,
   Post,
+  Request,
   Route,
+  Security,
   Tags,
   UploadedFile,
 } from "tsoa";
+import { getReqUser } from "../auth/auth.helpers";
 import fileService from "./file.service";
 
 @Route("files")
 @Tags("Files")
-@Middlewares(validateAuthentication)
+@Security("jwt")
 export class FileController extends Controller {
   @Post("/")
   public async create(
@@ -32,15 +33,16 @@ export class FileController extends Controller {
 
   @Delete("/")
   public async remove(
+    @Request() req: ExReq,
     @Body() body: { url: string }
-  ): Promise<APIResponse<string>> {
+  ): Promise<APIResponse<Message>> {
     const file = await fileService.fetch(body.url);
-    if (file.metadata.metadata?.createdBy !== getReqUser(res).id) {
+    if (file.metadata.metadata?.createdBy !== getReqUser(req).id) {
       this.setStatus(errorConst.unAuthorized.code);
       return toResponse({ error: errorConst.unAuthorized.message });
     }
 
     await file.delete();
-    return toResponse({ data: "File deleted successfully" });
+    return toResponse({ data: { message: "File deleted successfully" } });
   }
 }
