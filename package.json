@@ -5,7 +5,7 @@
   "scripts": {
     "tsoa": "tsoa spec-and-routes",
     "setup": "npm run env:fetch && npm run prisma:pull && npm run schema-transform && npm run prisma:generate",
-    "build": "npm run setup && npm run tsoa && tsc",
+    "build": "npm run setup && npm run tsoa && tsc && node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/scripts/secrets.js",
     "local": "npm run setup && concurrently \"nodemon server.ts\" \"nodemon -x tsoa spec-and-routes\"",
     "dev": "cross-env NODE_ENV=dev npm run local",
     "prod": "cross-env NODE_ENV=production npm run local",
