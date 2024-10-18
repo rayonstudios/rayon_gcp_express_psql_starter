@@ -63,38 +63,25 @@ export class AuthController extends Controller {
   public async signup(
     @Body() body: AuthSignup
   ): Promise<APIResponse<AuthLoginResponse>> {
-    try {
-      const existingUser = await userService.fetchByEmail(body.email);
-      if (existingUser) {
-        this.setStatus(errorConst.alreadyExists.code);
-        return toResponse({ error: errorConst.alreadyExists.message });
-      }
-
-      const user = await userService.create({ ...body, role: Role.USER });
-      if (!user) {
-        this.setStatus(errorConst.internal.code);
-        return toResponse({ error: errorConst.internal.message });
-      }
-
-      try {
-        await otpService.send(user);
-      } catch (err) {
-        throw new Error("Failed to send OTP");
-      }
-
-      const tokens = await authSerivce.generateTokens(user);
-      if (!tokens) {
-        this.setStatus(errorConst.internal.code);
-        return toResponse({ error: errorConst.internal.message });
-      }
-
-      return toResponse({
-        data: { ...tokens, user: userHelpers.sanitize(user) },
-      });
-    } catch (error: any) {
-      this.setStatus(errorConst.internal.code);
-      return toResponse({ error: error.message });
+    const existingUser = await userService.fetchByEmail(body.email);
+    if (existingUser) {
+      this.setStatus(errorConst.alreadyExists.code);
+      return toResponse({ error: errorConst.alreadyExists.message });
     }
+    const user = await userService.create({ ...body, role: Role.USER });
+    if (!user) {
+      this.setStatus(errorConst.internal.code);
+      return toResponse({ error: errorConst.internal.message });
+    }
+    await otpService.send(user);
+    const tokens = await authSerivce.generateTokens(user);
+    if (!tokens) {
+      this.setStatus(errorConst.internal.code);
+      return toResponse({ error: errorConst.internal.message });
+    }
+    return toResponse({
+      data: { ...tokens, user: userHelpers.sanitize(user) },
+    });
   }
 
   @Post("/verifyEmail")
