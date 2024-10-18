@@ -43,10 +43,7 @@ async function create(data: UserCreate & { password: string }) {
         bio: data.bio || "",
       },
     })
-    .catch((e) => {
-      console.log(e);
-      return null;
-    });
+    .catch(() => null);
   return user;
 }
 
