@@ -4,7 +4,7 @@
   "controllerPathGlobs": ["src/modules/**/*.controller.ts"],
   "spec": {
     "basePath": "/api",
-    "outputDirectory": "dist",
+    "outputDirectory": ".",
     "specVersion": 3,
     "securityDefinitions": {
       "jwt": {
@@ -16,7 +16,7 @@
   },
   "routes": {
     "basePath": "/api",
-    "routesDir": "dist",
+    "routesDir": ".",
     "authenticationModule": "src/middlewares/auth.middleware.ts"
   },
   "compilerOptions": {

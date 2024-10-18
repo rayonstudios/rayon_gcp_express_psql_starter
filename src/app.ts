@@ -1,4 +1,4 @@
-import { RegisterRoutes } from "#/dist/routes";
+import { RegisterRoutes } from "#/routes";
 import cors from "cors";
 import express, { json, urlencoded } from "express";
 import morgan from "morgan";
@@ -25,8 +25,18 @@ app.use(
 );
 app.use(json());
 
+// request logger
+app.use(morgan("short"));
+
+// tsoa register routes
+RegisterRoutes(app, {
+  multer: multer({
+    dest: "/tmp",
+  }),
+});
+
 // status check
-app.get("/", (_, res) => {
+app.get("/api/status", (_, res) => {
   res.status(200).send(
     toResponse({
       data: { message: `Hello World! This is ${process.env.NODE_ENV} env` },
@@ -35,7 +45,7 @@ app.get("/", (_, res) => {
 });
 
 // reload secrets webhook
-app.post("/reload_secrets", async (req, res) => {
+app.post("/api/reload_secrets", async (req, res) => {
   const { key } = req.query;
   if (key !== process.env.INFISICAL_WEBHOOK_KEY) {
     res
@@ -51,18 +61,8 @@ app.post("/reload_secrets", async (req, res) => {
   res.status(200).json(toResponse({ data: { message: "Secrets reloaded" } }));
 });
 
-// request logger
-app.use(morgan("short"));
-
 // swagger docs
-app.use("/docs", swaggerUi.serve, setupSwagger);
-
-// tsoa register routes
-RegisterRoutes(app, {
-  multer: multer({
-    dest: "/tmp",
-  }),
-});
+app.use("/", swaggerUi.serve, setupSwagger);
 
 // global error handler
 app.use(globalErrorHandler);

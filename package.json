@@ -1,15 +1,16 @@
 {
   "name": "rayon_express_psql_starter",
-  "version": "1.0.0",
+  "version": "1.2",
   "description": "",
   "scripts": {
     "tsoa": "tsoa spec-and-routes",
-    "build": "npm run tsoa && tsc && node ./dist/scripts/secrets.js",
-    "setup": "npm run env:fetch && npm run prisma:pull && npm run schema-transform && npm run prisma:generate && concurrently \"nodemon server.ts\" \"nodemon -x tsoa spec-and-routes\"",
-    "dev": "cross-env NODE_ENV=dev npm run setup",
-    "prod": "cross-env NODE_ENV=production npm run setup",
+    "setup": "npm run env:fetch && npm run prisma:pull && npm run schema-transform && npm run prisma:generate",
+    "build": "npm run setup && npm run tsoa && tsc",
+    "local": "npm run setup && concurrently \"nodemon server.ts\" \"nodemon -x tsoa spec-and-routes\"",
+    "dev": "cross-env NODE_ENV=dev npm run local",
+    "prod": "cross-env NODE_ENV=production npm run local",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "start": "node ./dist/server.js",
+    "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/server.js",
     "deploy": "npm run build && gcloud app deploy",
     "watch:types": "tsc -w",
     "env:fetch": "ts-node ./scripts/secrets",
@@ -26,7 +27,9 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "dist/*"
+      "dist/*",
+      "routes.ts",
+      "swagger.json"
     ],
     "ext": "ts"
   },

@@ -15,7 +15,7 @@ jobs:
 
       - name: Env Replace
         run: |
-          npm run env:replace
+          npx tsx ./scripts/env-replace
         env:
           NODE_ENV: dev
           INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}

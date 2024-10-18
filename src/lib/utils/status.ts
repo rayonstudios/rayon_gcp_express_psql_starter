@@ -1,4 +1,8 @@
 export const statusConst = {
+  success: {
+    message: "Success",
+    code: 200,
+  },
   created: {
     message: "Resource created",
     code: 201,

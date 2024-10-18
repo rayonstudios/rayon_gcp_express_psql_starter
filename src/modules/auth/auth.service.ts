@@ -33,10 +33,10 @@ async function verifyToken(token: string, type: "access" | "refresh") {
       : process.env.REFRESH_TOKEN_SECRET;
   if (!secret) return null;
 
-  return new Promise((res, rej) => {
+  return new Promise((res) => {
     jwt.verify(token, secret, (err: any, user: any) => {
       if (err) {
-        return rej(err);
+        return res(null);
       }
       return res(user);
     });
