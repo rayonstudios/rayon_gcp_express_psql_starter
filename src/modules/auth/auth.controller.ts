@@ -64,35 +64,26 @@ export class AuthController extends Controller {
     @Body() body: AuthSignup
   ): Promise<APIResponse<AuthLoginResponse>> {
     try {
-      console.log("Signup process started for email:", body.email);
-
       const existingUser = await userService.fetchByEmail(body.email);
       if (existingUser) {
-        console.log("User already exists with email:", body.email);
         this.setStatus(errorConst.alreadyExists.code);
         return toResponse({ error: errorConst.alreadyExists.message });
       }
 
-      // Create user in db
       const user = await userService.create({ ...body, role: Role.USER });
       if (!user) {
-        console.error("Failed to create user");
         this.setStatus(errorConst.internal.code);
         return toResponse({ error: errorConst.internal.message });
       }
 
-      // Send OTP on user's email
       try {
         await otpService.send(user);
       } catch (err) {
-        console.error("OTP service failed:", err);
         throw new Error("Failed to send OTP");
       }
 
-      // Generate tokens
       const tokens = await authSerivce.generateTokens(user);
       if (!tokens) {
-        console.error("Failed to generate tokens");
         this.setStatus(errorConst.internal.code);
         return toResponse({ error: errorConst.internal.message });
       }
@@ -101,7 +92,6 @@ export class AuthController extends Controller {
         data: { ...tokens, user: userHelpers.sanitize(user) },
       });
     } catch (error: any) {
-      console.error("Internal error during signup:", error); // Full error logging
       this.setStatus(errorConst.internal.code);
       return toResponse({ error: error.message });
     }
