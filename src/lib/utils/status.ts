@@ -3,12 +3,12 @@ export const statusConst = {
     message: "Resource created",
     code: 201,
   },
-  invalidCredentials: {
-    message: "Invalid credentials",
-    code: 401,
-  },
   unAuthenticated: {
     message: "User is not authenticated",
+    code: 401,
+  },
+  invalidCredentials: {
+    message: "Invalid credentials",
     code: 401,
   },
   unAuthorized: {

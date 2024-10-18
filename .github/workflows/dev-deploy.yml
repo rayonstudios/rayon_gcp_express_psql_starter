@@ -20,6 +20,7 @@ jobs:
           NODE_ENV: dev
           INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_WORKSPACE_SLUG: ${{ secrets.INFISICAL_WORKSPACE_SLUG }}
 
       - id: "auth"
         uses: "google-github-actions/auth@v2"

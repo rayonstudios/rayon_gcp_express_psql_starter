@@ -2,7 +2,6 @@ import { User } from "#/src/modules/user/user.types";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-
 async function generateTokens(user: User) {
   if (
     !process.env.ACCESS_TOKEN_SECRET ||
@@ -20,7 +19,7 @@ async function generateTokens(user: User) {
     }
   );
   const refreshToken = jwt.sign(
-    { id: user.id, refresh_token_version:user.refresh_token_version },
+    { id: user.id, refresh_token_version: user.refresh_token_version },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: process.env.REFRESH_TOKEN_LIFE }
   );
@@ -52,8 +51,6 @@ async function hashPassword(password: string) {
 async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
-
-
 
 const authService = {
   generateTokens,
