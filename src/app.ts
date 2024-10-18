@@ -37,7 +37,7 @@ app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
       .status(errorConst.invalidData.code)
       .json(toResponse({ error: JSON.stringify(err.fields) }));
   } else if (err instanceof Error) {
-    console.error(err);
+    console.log(err);
     res
       .status(errorConst.internal.code)
       .json(toResponse({ error: errorConst.internal.message }));

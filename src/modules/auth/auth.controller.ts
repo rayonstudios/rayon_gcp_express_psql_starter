@@ -3,11 +3,22 @@ import { toResponse } from "#/src/lib/utils";
 import { errorConst } from "#/src/lib/utils/error";
 import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
+import { validateAuthentication } from "#/src/middlewares/authentication";
 import { validateData } from "#/src/middlewares/validation";
 import userService from "#/src/modules/user/user.service";
-import { Body, Controller, Middlewares, Post, Route, Tags } from "tsoa";
+import { Request as ExReq } from "express";
+import {
+  Body,
+  Controller,
+  Middlewares,
+  Post,
+  Request,
+  Route,
+  Tags,
+} from "tsoa";
 import otpService from "../otp/otp.service";
 import userHelpers from "../user/user.helpers";
+import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
 import {
   AuthLogin,
@@ -53,29 +64,21 @@ export class AuthController extends Controller {
     @Body() body: AuthSignup
   ): Promise<APIResponse<AuthLoginResponse>> {
     const existingUser = await userService.fetchByEmail(body.email);
-
     if (existingUser) {
       this.setStatus(errorConst.alreadyExists.code);
       return toResponse({ error: errorConst.alreadyExists.message });
     }
-
-    // create user in db
     const user = await userService.create({ ...body, role: Role.USER });
     if (!user) {
       this.setStatus(errorConst.internal.code);
       return toResponse({ error: errorConst.internal.message });
     }
-
-    // send otp on user's email
     await otpService.send(user);
-
-    // generate tokens
     const tokens = await authSerivce.generateTokens(user);
     if (!tokens) {
       this.setStatus(errorConst.internal.code);
       return toResponse({ error: errorConst.internal.message });
     }
-
     return toResponse({
       data: { ...tokens, user: userHelpers.sanitize(user) },
     });
@@ -104,5 +107,19 @@ export class AuthController extends Controller {
     });
 
     return toResponse({ data: "Email successfully verified!" });
+  }
+
+  @Post("/signoutAll")
+  @Middlewares(validateAuthentication)
+  public async signout(@Request() req: ExReq): Promise<APIResponse<string>> {
+    const user = getReqUser(req);
+    await prisma.users.update({
+      where: { id: user.id },
+      data: { refresh_token_version: { increment: 1 } },
+    });
+
+    return toResponse({
+      data: "Successfully signedout from all devices",
+    });
   }
 }
