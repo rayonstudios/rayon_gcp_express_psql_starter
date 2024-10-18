@@ -1,20 +1,24 @@
 import { APIResponse } from "#/src/lib/types/misc";
-import { toResponse } from "#/src/lib/utils";
+import { isImage, toResponse } from "#/src/lib/utils";
 import { errorConst } from "#/src/lib/utils/error";
 import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
 import { validateData } from "#/src/middlewares/validation";
 import userService from "#/src/modules/user/user.service";
-import { Body, Controller, Middlewares, Post, Route, Tags } from "tsoa";
+import {
+  Body,
+  Controller,
+  FormField,
+  Middlewares,
+  Post,
+  Route,
+  Tags,
+  UploadedFile,
+} from "tsoa";
 import otpService from "../otp/otp.service";
 import userHelpers from "../user/user.helpers";
 import authSerivce from "./auth.service";
-import {
-  AuthLogin,
-  AuthLoginResponse,
-  AuthSignup,
-  AuthVerifyEmail,
-} from "./auth.types";
+import { AuthLogin, AuthLoginResponse, AuthVerifyEmail } from "./auth.types";
 import authValidations from "./auth.validations";
 
 @Route("auth")
@@ -50,17 +54,34 @@ export class AuthController extends Controller {
   @Post("/signup")
   @Middlewares(validateData(authValidations.login))
   public async signup(
-    @Body() body: AuthSignup
+    @FormField() name: string,
+    @FormField() email: string,
+    @FormField() password: string,
+    @FormField() bio?: string,
+    @UploadedFile() photo?: Express.Multer.File
   ): Promise<APIResponse<AuthLoginResponse>> {
-    const existingUser = await userService.fetchByEmail(body.email);
+    if (photo && !isImage(photo.mimetype)) {
+      this.setStatus(errorConst.invalidData.code);
+      return toResponse({
+        error: "Invalid file type. Only images are allowed.",
+      });
+    }
 
+    const existingUser = await userService.fetchByEmail(email);
     if (existingUser) {
       this.setStatus(errorConst.alreadyExists.code);
       return toResponse({ error: errorConst.alreadyExists.message });
     }
 
     // create user in db
-    const user = await userService.create({ ...body, role: Role.USER });
+    const user = await userService.create({
+      name,
+      email,
+      password,
+      bio,
+      photo: "",
+      role: Role.USER,
+    });
     if (!user) {
       this.setStatus(errorConst.internal.code);
       return toResponse({ error: errorConst.internal.message });

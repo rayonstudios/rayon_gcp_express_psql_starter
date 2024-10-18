@@ -22,3 +22,7 @@ export type PrismaEntityMutable<T> = Omit<
   T,
   "id" | "created_at" | "updated_at"
 >;
+
+export type Message = {
+  message: string;
+};

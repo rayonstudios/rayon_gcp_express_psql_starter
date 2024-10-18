@@ -28,3 +28,7 @@ export const randomString = (len: number) => {
     .replace(/[+/]/g, "")
     .substring(0, len);
 };
+
+export const isImage = (type: string) => {
+  return type.startsWith("image");
+};
