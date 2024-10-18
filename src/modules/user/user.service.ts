@@ -38,12 +38,15 @@ async function create(data: UserCreate & { password: string }) {
   const user = await prisma.users
     .create({
       data: {
-        ...data,
+        ...omit(data, "password"),
         password_hash,
         bio: data.bio || "",
       },
     })
-    .catch(() => null);
+    .catch((e) => {
+      console.log(e);
+      return null;
+    });
   return user;
 }
 

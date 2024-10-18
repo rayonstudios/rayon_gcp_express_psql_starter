@@ -3,21 +3,22 @@ import { toResponse } from "#/src/lib/utils";
 import { errorConst } from "#/src/lib/utils/error";
 import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
+import { validateAuthentication } from "#/src/middlewares/authentication";
 import { validateData } from "#/src/middlewares/validation";
 import userService from "#/src/modules/user/user.service";
+import { Request as ExReq } from "express";
 import {
   Body,
   Controller,
-  Delete,
   Middlewares,
   Post,
+  Request,
   Route,
   Tags,
-  Response,
-  Request,
 } from "tsoa";
 import otpService from "../otp/otp.service";
 import userHelpers from "../user/user.helpers";
+import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
 import {
   AuthLogin,
@@ -26,10 +27,6 @@ import {
   AuthVerifyEmail,
 } from "./auth.types";
 import authValidations from "./auth.validations";
-import { Request as ExReq } from "express";
-import { getReqUser } from "./auth.helpers";
-import { validateAuthentication } from "#/src/middlewares/authentication";
-
 
 @Route("auth")
 @Tags("Authentication")
@@ -66,33 +63,48 @@ export class AuthController extends Controller {
   public async signup(
     @Body() body: AuthSignup
   ): Promise<APIResponse<AuthLoginResponse>> {
-    const existingUser = await userService.fetchByEmail(body.email);
+    try {
+      console.log("Signup process started for email:", body.email);
 
-    if (existingUser) {
-      this.setStatus(errorConst.alreadyExists.code);
-      return toResponse({ error: errorConst.alreadyExists.message });
-    }
+      const existingUser = await userService.fetchByEmail(body.email);
+      if (existingUser) {
+        console.log("User already exists with email:", body.email);
+        this.setStatus(errorConst.alreadyExists.code);
+        return toResponse({ error: errorConst.alreadyExists.message });
+      }
 
-    // create user in db
-    const user = await userService.create({ ...body, role: Role.USER });
-    if (!user) {
+      // Create user in db
+      const user = await userService.create({ ...body, role: Role.USER });
+      if (!user) {
+        console.error("Failed to create user");
+        this.setStatus(errorConst.internal.code);
+        return toResponse({ error: errorConst.internal.message });
+      }
+
+      // Send OTP on user's email
+      try {
+        await otpService.send(user);
+      } catch (err) {
+        console.error("OTP service failed:", err);
+        throw new Error("Failed to send OTP");
+      }
+
+      // Generate tokens
+      const tokens = await authSerivce.generateTokens(user);
+      if (!tokens) {
+        console.error("Failed to generate tokens");
+        this.setStatus(errorConst.internal.code);
+        return toResponse({ error: errorConst.internal.message });
+      }
+
+      return toResponse({
+        data: { ...tokens, user: userHelpers.sanitize(user) },
+      });
+    } catch (error: any) {
+      console.error("Internal error during signup:", error); // Full error logging
       this.setStatus(errorConst.internal.code);
-      return toResponse({ error: errorConst.internal.message });
+      return toResponse({ error: error.message });
     }
-
-    // send otp on user's email
-    await otpService.send(user);
-
-    // generate tokens
-    const tokens = await authSerivce.generateTokens(user);
-    if (!tokens) {
-      this.setStatus(errorConst.internal.code);
-      return toResponse({ error: errorConst.internal.message });
-    }
-
-    return toResponse({
-      data: { ...tokens, user: userHelpers.sanitize(user) },
-    });
   }
 
   @Post("/verifyEmail")
@@ -120,18 +132,17 @@ export class AuthController extends Controller {
     return toResponse({ data: "Email successfully verified!" });
   }
 
-  @Delete("/signoutAll")
+  @Post("/signoutAll")
   @Middlewares(validateAuthentication)
   public async signout(@Request() req: ExReq): Promise<APIResponse<string>> {
-      const user = getReqUser(req)
-      //refresh token version changed
-      await prisma.users.update({
-        where: { id: user.id },
-        data: { refresh_token_version: { increment: 1 } },
-      });
+    const user = getReqUser(req);
+    await prisma.users.update({
+      where: { id: user.id },
+      data: { refresh_token_version: { increment: 1 } },
+    });
 
-      return toResponse({
-        data: "Successfully signedout from all devices",
-      });
-  
-    }}
+    return toResponse({
+      data: "Successfully signedout from all devices",
+    });
+  }
+}
