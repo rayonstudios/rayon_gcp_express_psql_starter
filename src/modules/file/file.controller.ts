@@ -1,6 +1,6 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
-import { errorConst } from "#/src/lib/utils/error";
+import { statusConst } from "#/src/lib/utils/status";
 import {
   Body,
   Controller,
@@ -25,7 +25,7 @@ export class FileController extends Controller {
   ): Promise<APIResponse<{ url: string }>> {
     const [url] = await fileService.save([{ ...file, createdBy: "" }]);
 
-    this.setStatus(201);
+    this.setStatus(statusConst.created.code);
     return toResponse({
       data: { url },
     });
@@ -38,8 +38,8 @@ export class FileController extends Controller {
   ): Promise<APIResponse<Message>> {
     const file = await fileService.fetch(body.url);
     if (file.metadata.metadata?.createdBy !== getReqUser(req).id) {
-      this.setStatus(errorConst.unAuthorized.code);
-      return toResponse({ error: errorConst.unAuthorized.message });
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
     }
 
     await file.delete();

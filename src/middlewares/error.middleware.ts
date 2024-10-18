@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ValidateError } from "tsoa";
 import { toResponse } from "../lib/utils";
-import { errorConst } from "../lib/utils/error";
+import { statusConst } from "../lib/utils/status";
 
 export const globalErrorHandler = (
   err: any,
@@ -11,16 +11,16 @@ export const globalErrorHandler = (
 ) => {
   if (err instanceof ValidateError) {
     res
-      .status(errorConst.invalidData.code)
+      .status(statusConst.invalidData.code)
       .json(toResponse({ error: JSON.stringify(err.fields) }));
   } else if (err instanceof Error) {
     res
-      .status(errorConst.internal.code)
-      .json(toResponse({ error: errorConst.internal.message }));
+      .status(statusConst.internal.code)
+      .json(toResponse({ error: statusConst.internal.message }));
   } else if (err.code) {
     res.status(err.code).json(
       toResponse({
-        error: Object.values(errorConst).find((e) => e.code === err.code)
+        error: Object.values(statusConst).find((e) => e.code === err.code)
           ?.message,
       })
     );

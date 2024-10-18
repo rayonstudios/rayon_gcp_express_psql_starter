@@ -5,8 +5,8 @@ import morgan from "morgan";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
 import { toResponse } from "./lib/utils";
-import { errorConst } from "./lib/utils/error";
 import { loadSecrets } from "./lib/utils/infisical";
+import { statusConst } from "./lib/utils/status";
 import { globalErrorHandler } from "./middlewares/error.middleware";
 import { setupSwagger } from "./middlewares/swagger.middleware";
 
@@ -29,7 +29,7 @@ app.use(json());
 app.get("/", (_, res) => {
   res.status(200).send(
     toResponse({
-      data: { message: `Hello World! this is ${process.env.NODE_ENV} env` },
+      data: { message: `Hello World! This is ${process.env.NODE_ENV} env` },
     })
   );
 });
@@ -39,8 +39,8 @@ app.post("/reload_secrets", async (req, res) => {
   const { key } = req.query;
   if (key !== process.env.INFISICAL_WEBHOOK_KEY) {
     res
-      .status(errorConst.unAuthenticated.code)
-      .json(toResponse({ error: errorConst.unAuthenticated.message }));
+      .status(statusConst.unAuthenticated.code)
+      .json(toResponse({ error: statusConst.unAuthenticated.message }));
     return;
   }
 

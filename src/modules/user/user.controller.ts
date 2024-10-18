@@ -1,8 +1,8 @@
 import { APIResponse } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
-import { errorConst } from "#/src/lib/utils/error";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
+import { statusConst } from "#/src/lib/utils/status";
 import { validateData } from "#/src/middlewares/validation.middleware";
 import {
   Body,
@@ -38,8 +38,8 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.fetch(userId);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
     return toResponse({ data: sanitizeUser(user) });
@@ -63,11 +63,11 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.create(body);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
-    this.setStatus(201);
+    this.setStatus(statusConst.created.code);
     return toResponse({ data: sanitizeUser(user) });
   }
 
@@ -78,8 +78,8 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.update(userId, body);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
     return toResponse({ data: sanitizeUser(user) });
@@ -91,8 +91,8 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.remove(userId);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
     return toResponse({ data: sanitizeUser(user) });

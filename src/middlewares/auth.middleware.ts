@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { errorConst } from "../lib/utils/error";
+import { statusConst } from "../lib/utils/status";
 import authService from "../modules/auth/auth.service";
 import { AuthUser } from "../modules/auth/auth.types";
 
@@ -12,7 +12,7 @@ export const expressAuthentication = async (
     const token = req.headers.authorization?.split(" ")[1];
     const type = req.originalUrl.endsWith("/refresh") ? "refresh" : "access";
     const sendUnAuthResponse = () =>
-      Promise.reject({ code: errorConst.unAuthenticated.code });
+      Promise.reject({ code: statusConst.unAuthenticated.code });
 
     if (!token) return sendUnAuthResponse();
 
@@ -20,7 +20,7 @@ export const expressAuthentication = async (
     if (!user) return sendUnAuthResponse();
 
     if (scopes?.length && !scopes.includes(user.role)) {
-      return Promise.reject({ code: errorConst.unAuthorized.code });
+      return Promise.reject({ code: statusConst.unAuthorized.code });
     }
 
     //@ts-ignore
