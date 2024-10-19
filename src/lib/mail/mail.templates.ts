@@ -60,24 +60,12 @@ const authentication = {
       },
     };
   },
-  createUser: ({
-    name,
-    inviter,
-    role,
-    resetPassLink,
-  }: {
-    name: string;
-    inviter: string;
-    role: string;
-    resetPassLink: string;
-  }) => {
+  createUser: ({ name, role }: { name: string; role: string }) => {
     return {
       id: 3,
       data: {
         name,
-        inviter,
         role,
-        resetPassLink,
       },
     };
   },

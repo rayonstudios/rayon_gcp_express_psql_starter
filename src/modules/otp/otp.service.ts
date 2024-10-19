@@ -1,13 +1,15 @@
 import mailService from "#/src/lib/mail/mail.service";
+import {
+  AuthTemplateParams,
+  AuthTemplateType,
+} from "#/src/lib/mail/mail.types";
 import { randomString } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
 import dayjs from "dayjs";
-import { TemplateMethod, TemplateParams } from "../otp/otp.types";
 import { User } from "../user/user.types";
-
 const send = async (
   user: User,
-  templateMethod: TemplateMethod = "verifyEmail"
+  templateMethod: AuthTemplateType = "verifyEmail"
 ) => {
   const otp = randomString(6);
   await prisma.otps.create({
@@ -15,14 +17,12 @@ const send = async (
   });
 
   const template = mailService.templates.authentication[templateMethod];
-  let templateParams: TemplateParams;
+  let templateParams: AuthTemplateParams;
 
   if (templateMethod === "createUser") {
     templateParams = {
       name: user.name,
-      inviter: "jack", //feild not in db
       role: user.role || "",
-      resetPassLink: "https://example.com/reset", //field not in db
     };
   } else {
     templateParams = {
