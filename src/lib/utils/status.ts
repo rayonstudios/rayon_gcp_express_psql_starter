@@ -1,6 +1,18 @@
-export const errorConst = {
+export const statusConst = {
+  success: {
+    message: "Success",
+    code: 200,
+  },
+  created: {
+    message: "Resource created",
+    code: 201,
+  },
   unAuthenticated: {
     message: "User is not authenticated",
+    code: 401,
+  },
+  invalidCredentials: {
+    message: "Invalid credentials",
     code: 401,
   },
   unAuthorized: {

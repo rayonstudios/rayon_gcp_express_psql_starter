@@ -1,6 +1,6 @@
 import { toResponse } from "#/src/lib/utils";
-import { errorConst } from "#/src/lib/utils/error";
 import { Role } from "#/src/lib/utils/roles";
+import { statusConst } from "#/src/lib/utils/status";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
@@ -18,7 +18,7 @@ export function validateData<T extends z.ZodRawShape>(
 
     if (error) {
       return res
-        .status(errorConst.invalidData.code)
+        .status(statusConst.invalidData.code)
         .json(toResponse({ error: error.message }));
     } else next();
   };
@@ -32,9 +32,9 @@ export function validateByRole<T extends z.ZodRawShape>(
     const userRole = res.locals.user?.role;
     const validation = validations.find((v) => v.roles.includes(userRole));
     if (!validation) {
-      return res.status(errorConst.unAuthorized.code).json(
+      return res.status(statusConst.unAuthorized.code).json(
         toResponse({
-          error: errorConst.unAuthorized.message,
+          error: statusConst.unAuthorized.message,
         })
       );
     }
@@ -45,23 +45,8 @@ export function validateByRole<T extends z.ZodRawShape>(
 
     if (error) {
       return res
-        .status(errorConst.invalidData.code)
+        .status(statusConst.invalidData.code)
         .json(toResponse({ error: error.message }));
     } else next();
-  };
-}
-
-export function validateRole(roles: Role[]) {
-  return async (_req: Request, res: Response, next: NextFunction) => {
-    const role = res.locals.user?.role;
-    if (roles.includes(role)) {
-      next();
-    } else {
-      return res.status(errorConst.unAuthorized.code).json(
-        toResponse({
-          error: errorConst.unAuthorized.message,
-        })
-      );
-    }
   };
 }

@@ -1,10 +1,9 @@
 import { APIResponse } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
-import { errorConst } from "#/src/lib/utils/error";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
-import { validateAuthentication } from "#/src/middlewares/authentication";
-import { validateData, validateRole } from "#/src/middlewares/validation";
+import { statusConst } from "#/src/lib/utils/status";
+import { validateData } from "#/src/middlewares/validation.middleware";
 import {
   Body,
   Controller,
@@ -16,9 +15,10 @@ import {
   Post,
   Queries,
   Route,
+  Security,
   Tags,
 } from "tsoa";
-import userHelpers from "./user.helpers";
+import { sanitizeUser } from "./user.helpers";
 import userService from "./user.service";
 import {
   SanitizedUser,
@@ -30,7 +30,7 @@ import userValidations from "./user.validations";
 
 @Route("users")
 @Tags("User")
-@Middlewares(validateAuthentication, validateRole([Role.ADMIN])) // controller level middlewares
+@Security("jwt", [Role.ADMIN])
 export class UserController extends Controller {
   @Get("{userId}")
   public async fetch(
@@ -38,11 +38,11 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.fetch(userId);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 
   @Get("/")
@@ -52,7 +52,7 @@ export class UserController extends Controller {
   ): Promise<APIResponse<PaginationResponse<SanitizedUser>>> {
     const res = await userService.fetchList(query);
     return toResponse({
-      data: { ...res, list: res.list.map(userHelpers.sanitize) },
+      data: { ...res, list: res.list.map(sanitizeUser) },
     });
   }
 
@@ -63,12 +63,12 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.create(body);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
-    this.setStatus(201);
-    return toResponse({ data: userHelpers.sanitize(user) });
+    this.setStatus(statusConst.created.code);
+    return toResponse({ data: sanitizeUser(user) });
   }
 
   @Patch("{userId}")
@@ -78,11 +78,11 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.update(userId, body);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 
   @Delete("{userId}")
@@ -91,10 +91,10 @@ export class UserController extends Controller {
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.remove(userId);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
-    return toResponse({ data: userHelpers.sanitize(user) });
+    return toResponse({ data: sanitizeUser(user) });
   }
 }

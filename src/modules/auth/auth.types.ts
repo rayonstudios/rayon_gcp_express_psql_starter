@@ -1,9 +1,10 @@
+import { Role } from "#/src/lib/utils/roles";
 import { SanitizedUser, UserCreate } from "#/src/modules/user/user.types";
 
 export type AuthUser = {
   id: string;
   email: string;
-  role: string;
+  role: Role;
 };
 
 export type AuthLogin = {
@@ -23,4 +24,3 @@ export type AuthLoginResponse = {
   accessToken: string;
   refreshToken: string;
 };
-

@@ -1,18 +1,23 @@
-import { RegisterRoutes } from "#/dist/routes";
-import express, {
-  json,
-  NextFunction,
-  Request,
-  Response,
-  urlencoded,
-} from "express";
+import { RegisterRoutes } from "#/routes";
+import cors from "cors";
+import express, { json, urlencoded } from "express";
+import morgan from "morgan";
+import multer from "multer";
 import swaggerUi from "swagger-ui-express";
-import { ValidateError } from "tsoa";
 import { toResponse } from "./lib/utils";
-import { errorConst } from "./lib/utils/error";
+import { loadSecrets } from "./lib/utils/infisical";
+import { statusConst } from "./lib/utils/status";
+import { globalErrorHandler } from "./middlewares/error.middleware";
+import { setupSwagger } from "./middlewares/swagger.middleware";
 
 export const app = express();
 
+// cors middleware
+app.use((req, res, next) => {
+  cors({ credentials: true, origin: "*" })(req, res, next);
+});
+
+// req data parsers
 app.use(
   urlencoded({
     extended: true,
@@ -20,28 +25,44 @@ app.use(
 );
 app.use(json());
 
-app.get("/", (_, res) => {
-  res.send("Hello World!");
+// request logger
+app.use(morgan("short"));
+
+// tsoa register routes
+RegisterRoutes(app, {
+  multer: multer({
+    dest: "/tmp",
+  }),
 });
 
-app.use("/docs", swaggerUi.serve, async (_req: any, res: any) => {
-  return res.send(swaggerUi.generateHTML(await import("#/dist/swagger.json")));
+// status check
+app.get("/api/status", (_, res) => {
+  res.status(200).send(
+    toResponse({
+      data: { message: `Hello World! This is ${process.env.NODE_ENV} env` },
+    })
+  );
 });
 
-RegisterRoutes(app);
-
-// global error handler
-app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof ValidateError) {
+// reload secrets webhook
+app.post("/api/reload_secrets", async (req, res) => {
+  const { key } = req.query;
+  if (key !== process.env.INFISICAL_WEBHOOK_KEY) {
     res
-      .status(errorConst.invalidData.code)
-      .json(toResponse({ error: JSON.stringify(err.fields) }));
-  } else if (err instanceof Error) {
-    console.log(err);
-    res
-      .status(errorConst.internal.code)
-      .json(toResponse({ error: errorConst.internal.message }));
+      .status(statusConst.unAuthenticated.code)
+      .json(toResponse({ error: statusConst.unAuthenticated.message }));
+    return;
   }
 
-  next(err);
+  const secrets = await loadSecrets();
+  secrets.forEach((secret) => {
+    process.env[secret.secretKey] = secret.secretValue;
+  });
+  res.status(200).json(toResponse({ data: { message: "Secrets reloaded" } }));
 });
+
+// swagger docs
+app.use("/", swaggerUi.serve, setupSwagger);
+
+// global error handler
+app.use(globalErrorHandler);

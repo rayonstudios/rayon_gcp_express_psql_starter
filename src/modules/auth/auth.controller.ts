@@ -1,31 +1,28 @@
-import { APIResponse } from "#/src/lib/types/misc";
-import { toResponse } from "#/src/lib/utils";
-import { errorConst } from "#/src/lib/utils/error";
+import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
+import { isImage, toResponse } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
-import { validateAuthentication } from "#/src/middlewares/authentication";
-import { validateData } from "#/src/middlewares/validation";
+import { statusConst } from "#/src/lib/utils/status";
+import { validateData } from "#/src/middlewares/validation.middleware";
 import userService from "#/src/modules/user/user.service";
-import { Request as ExReq } from "express";
 import {
   Body,
   Controller,
+  FormField,
   Middlewares,
   Post,
   Request,
   Route,
+  Security,
   Tags,
+  UploadedFile,
 } from "tsoa";
+import fileService from "../file/file.service";
 import otpService from "../otp/otp.service";
-import userHelpers from "../user/user.helpers";
+import { sanitizeUser } from "../user/user.helpers";
 import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
-import {
-  AuthLogin,
-  AuthLoginResponse,
-  AuthSignup,
-  AuthVerifyEmail,
-} from "./auth.types";
+import { AuthLogin, AuthLoginResponse, AuthVerifyEmail } from "./auth.types";
 import authValidations from "./auth.validations";
 
 @Route("auth")
@@ -43,44 +40,68 @@ export class AuthController extends Controller {
       !user.email_verified ||
       !(await authSerivce.verifyPassword(body.password, user.password_hash))
     ) {
-      this.setStatus(errorConst.unAuthenticated.code);
-      return toResponse({ error: errorConst.unAuthenticated.message });
+      this.setStatus(statusConst.invalidCredentials.code);
+      return toResponse({ error: statusConst.invalidCredentials.message });
     }
 
     const tokens = await authSerivce.generateTokens(user);
     if (!tokens) {
-      this.setStatus(errorConst.internal.code);
-      return toResponse({ error: errorConst.internal.message });
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
     }
 
     return toResponse({
-      data: { ...tokens, user: userHelpers.sanitize(user) },
+      data: { ...tokens, user: sanitizeUser(user) },
     });
   }
 
   @Post("/signup")
   @Middlewares(validateData(authValidations.login))
   public async signup(
-    @Body() body: AuthSignup
+    @FormField() name: string,
+    @FormField() email: string,
+    @FormField() password: string,
+    @FormField() bio?: string,
+    @UploadedFile() photo?: Express.Multer.File
   ): Promise<APIResponse<AuthLoginResponse>> {
-    const existingUser = await userService.fetchByEmail(body.email);
-    if (existingUser) {
-      this.setStatus(errorConst.alreadyExists.code);
-      return toResponse({ error: errorConst.alreadyExists.message });
+    if (photo && !isImage(photo.mimetype)) {
+      this.setStatus(statusConst.invalidData.code);
+      return toResponse({
+        error: "Invalid file type. Only images are allowed.",
+      });
     }
-    const user = await userService.create({ ...body, role: Role.USER });
+
+    const existingUser = await userService.fetchByEmail(email);
+    if (existingUser) {
+      this.setStatus(statusConst.alreadyExists.code);
+      return toResponse({ error: statusConst.alreadyExists.message });
+    }
+
+    let photoUrl = "";
+    if (photo) {
+      [photoUrl] = await fileService.save([{ ...photo }]);
+    }
+    // create user in db
+    const user = await userService.create({
+      name,
+      email,
+      password,
+      bio,
+      photo: photoUrl,
+      role: Role.USER,
+    });
     if (!user) {
-      this.setStatus(errorConst.internal.code);
-      return toResponse({ error: errorConst.internal.message });
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
     }
     await otpService.send(user);
     const tokens = await authSerivce.generateTokens(user);
     if (!tokens) {
-      this.setStatus(errorConst.internal.code);
-      return toResponse({ error: errorConst.internal.message });
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
     }
     return toResponse({
-      data: { ...tokens, user: userHelpers.sanitize(user) },
+      data: { ...tokens, user: sanitizeUser(user) },
     });
   }
 
@@ -88,17 +109,17 @@ export class AuthController extends Controller {
   @Middlewares(validateData(authValidations.login.omit({ password: true })))
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
-  ): Promise<APIResponse<string>> {
+  ): Promise<APIResponse<Message>> {
     const user = await userService.fetchByEmail(body.email);
     if (!user) {
-      this.setStatus(errorConst.notFound.code);
-      return toResponse({ error: errorConst.notFound.message });
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
     }
 
     const verified = await otpService.verify(body);
     if (!verified) {
-      this.setStatus(errorConst.unAuthenticated.code);
-      return toResponse({ error: errorConst.unAuthenticated.message });
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
     await prisma.users.update({
@@ -106,12 +127,12 @@ export class AuthController extends Controller {
       data: { email_verified: true },
     });
 
-    return toResponse({ data: "Email successfully verified!" });
+    return toResponse({ data: { message: "Email successfully verified!" } });
   }
 
   @Post("/signoutAll")
-  @Middlewares(validateAuthentication)
-  public async signout(@Request() req: ExReq): Promise<APIResponse<string>> {
+  @Security("jwt")
+  public async signout(@Request() req: ExReq): Promise<APIResponse<Message>> {
     const user = getReqUser(req);
     await prisma.users.update({
       where: { id: user.id },
@@ -119,7 +140,7 @@ export class AuthController extends Controller {
     });
 
     return toResponse({
-      data: "Successfully signedout from all devices",
+      data: { message: "Successfully signedout from all devices" },
     });
   }
 

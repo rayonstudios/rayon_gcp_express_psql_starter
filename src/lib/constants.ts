@@ -1,7 +1,7 @@
 import { isAppEngine, isDevEnv } from "#/src/lib/utils";
 
 // General
-export const APP_TITLE = "Rayon React Starter";
+export const APP_TITLE = `Rayon React Starter${isDevEnv() ? " (Dev)" : ""}`;
 export const PORT = process.env.PORT || 3000;
 
 // URLs

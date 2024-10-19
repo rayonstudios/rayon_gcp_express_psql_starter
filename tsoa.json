@@ -3,11 +3,21 @@
   "noImplicitAdditionalProperties": "throw-on-extras",
   "controllerPathGlobs": ["src/modules/**/*.controller.ts"],
   "spec": {
-    "outputDirectory": "dist",
-    "specVersion": 3
+    "basePath": "/api",
+    "outputDirectory": ".",
+    "specVersion": 3,
+    "securityDefinitions": {
+      "jwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "A resource owner JWT"
+      }
+    }
   },
   "routes": {
-    "routesDir": "dist"
+    "basePath": "/api",
+    "routesDir": ".",
+    "authenticationModule": "src/middlewares/auth.middleware.ts"
   },
   "compilerOptions": {
     "baseUrl": ".",

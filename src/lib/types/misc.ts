@@ -1,3 +1,4 @@
+import { Request as ExReq, Response as ExRes } from "express";
 export type GenericObject = Record<string, any>;
 export type KeyValuePair = Record<string, string>;
 
@@ -22,3 +23,9 @@ export type PrismaEntityMutable<T> = Omit<
   T,
   "id" | "created_at" | "updated_at"
 >;
+
+export type Message = {
+  message: string;
+};
+
+export { ExReq, ExRes };
