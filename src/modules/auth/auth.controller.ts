@@ -122,9 +122,9 @@ export class AuthController extends Controller {
       data: "Successfully signedout from all devices",
     });
   }
-  //forgot password function
+
   @Post("/forgotPassword")
-  @Middlewares(validateData(authValidations.login.omit({ password: true })))
+  @Middlewares(validateData(authValidations.forgotPass))
   public async forgotPassword(
     @Body() body: AuthVerifyEmail
   ): Promise<APIResponse<string>> {
