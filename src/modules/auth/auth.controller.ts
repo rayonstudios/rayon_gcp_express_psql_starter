@@ -143,4 +143,23 @@ export class AuthController extends Controller {
       data: { message: "Successfully signedout from all devices" },
     });
   }
+
+  @Post("/forgotPassword")
+  @Middlewares(validateData(authValidations.forgotPass))
+  public async forgotPassword(
+    @Body() body: AuthVerifyEmail
+  ): Promise<APIResponse<Message>> {
+    const user = await userService.fetchByEmail(body.email);
+
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
+
+    await otpService.send(user, "forgotPassword");
+
+    return toResponse({
+      data: { message: "Forgot password email send successfully" },
+    });
+  }
 }
