@@ -19,6 +19,12 @@ export type AuthVerifyEmail = {
   email: string;
 };
 
+export type AuthResetPass = {
+  email: string;
+  otp: string;
+  password: string;
+};
+
 export type AuthLoginResponse = {
   user: SanitizedUser;
   accessToken: string;
