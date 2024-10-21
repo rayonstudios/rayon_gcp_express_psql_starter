@@ -115,12 +115,6 @@ export class AuthController extends Controller {
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
   ): Promise<APIResponse<Message>> {
-    const user = await userService.fetchByEmail(body.email);
-    if (!user) {
-      this.setStatus(statusConst.notFound.code);
-      return toResponse({ error: statusConst.notFound.message });
-    }
-
     const verified = await otpService.verify(body);
     if (!verified) {
       this.setStatus(statusConst.unAuthenticated.code);
@@ -128,7 +122,7 @@ export class AuthController extends Controller {
     }
 
     await prisma.users.update({
-      where: { id: user.id },
+      where: { email: body.email },
       data: { email_verified: true },
     });
 
@@ -173,12 +167,6 @@ export class AuthController extends Controller {
   public async resetPassword(
     @Body() body: AuthResetPass
   ): Promise<APIResponse<Message>> {
-    const user = await userService.fetchByEmail(body.email);
-    if (!user) {
-      this.setStatus(statusConst.notFound.code);
-      return toResponse({ error: statusConst.notFound.message });
-    }
-
     const { password, ...restOfBody } = body;
 
     const verified = await otpService.verify(restOfBody);
@@ -190,12 +178,12 @@ export class AuthController extends Controller {
     const newPassword = await authSerivce.hashPassword(password);
 
     await prisma.users.update({
-      where: { id: user.id },
+      where: { email: body.email },
       data: { password_hash: newPassword },
     });
 
     return toResponse({
-      data: { message: "Forgot password email send successfully" },
+      data: { message: "=Password has been reset successfully" },
     });
   }
 }
