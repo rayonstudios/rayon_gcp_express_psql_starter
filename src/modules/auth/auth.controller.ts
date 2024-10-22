@@ -163,7 +163,7 @@ export class AuthController extends Controller {
   }
 
   @Post("/resetPassword")
-  @Middlewares(authValidations.resetPass)
+  @Middlewares(validateData(authValidations.resetPass))
   public async resetPassword(
     @Body() body: AuthResetPass
   ): Promise<APIResponse<Message>> {
@@ -183,7 +183,7 @@ export class AuthController extends Controller {
     });
 
     return toResponse({
-      data: { message: "=Password has been reset successfully" },
+      data: { message: "Password has been reset successfully" },
     });
   }
 }

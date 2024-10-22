@@ -100,8 +100,8 @@ async function processSchema() {
             newFieldName === "createdat"
               ? "created_at"
               : newFieldName === "updatedat"
-              ? "updated_at"
-              : newFieldName;
+                ? "updated_at"
+                : newFieldName;
 
           // Store the mapping of old field name to new field name for this model
           renamedFieldsMap[currentModelName][originalFieldName] = newFieldName;
