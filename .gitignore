@@ -5,5 +5,5 @@ dist/
 service_account.json
 files/
 .DS_Store
-# routes.ts
-# swagger.json
+routes.ts
+swagger.json
