@@ -22,7 +22,13 @@ import otpService from "../otp/otp.service";
 import { sanitizeUser } from "../user/user.helpers";
 import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
-import { AuthLogin, AuthLoginResponse, AuthVerifyEmail } from "./auth.types";
+import {
+  AuthForgotPass,
+  AuthLogin,
+  AuthLoginResponse,
+  AuthResetPass,
+  AuthVerifyEmail,
+} from "./auth.types";
 import authValidations from "./auth.validations";
 
 @Route("auth")
@@ -147,7 +153,7 @@ export class AuthController extends Controller {
   @Post("/forgotPassword")
   @Middlewares(validateData(authValidations.forgotPass))
   public async forgotPassword(
-    @Body() body: AuthVerifyEmail
+    @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
     const user = await userService.fetchByEmail(body.email);
 
@@ -160,6 +166,31 @@ export class AuthController extends Controller {
 
     return toResponse({
       data: { message: "Forgot password email send successfully" },
+    });
+  }
+
+  @Post("/resetPassword")
+  @Middlewares(authValidations.resetPass)
+  public async resetPassword(
+    @Body() body: AuthResetPass
+  ): Promise<APIResponse<Message>> {
+    const { password, ...restOfBody } = body;
+
+    const verified = await otpService.verify(restOfBody);
+    if (!verified) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({ error: statusConst.unAuthenticated.message });
+    }
+
+    const newPassword = await authSerivce.hashPassword(password);
+
+    await prisma.users.update({
+      where: { email: body.email },
+      data: { password_hash: newPassword },
+    });
+
+    return toResponse({
+      data: { message: "=Password has been reset successfully" },
     });
   }
 }
