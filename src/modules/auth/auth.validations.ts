@@ -19,6 +19,7 @@ const resetPass = z.object({
   otp: z.string().length(6),
   password: z.string().min(6),
 });
+
 const changePass = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -27,6 +28,7 @@ const changePass = z.object({
 const refreshToken = z.object({
   token: z.string(),
 });
+
 const authValidations = {
   login,
   forgotPass,

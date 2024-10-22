@@ -143,7 +143,7 @@ export class AuthController extends Controller {
     });
 
     return toResponse({
-      data: { message: "Successfully signedout from all devices" },
+      data: { message: "Successfully signed out from all devices!" },
     });
   }
 
@@ -162,7 +162,7 @@ export class AuthController extends Controller {
     await otpService.send(user, "forgotPassword");
 
     return toResponse({
-      data: { message: "Forgot password email send successfully" },
+      data: { message: "Forgot password email sent successfully!" },
     });
   }
 
@@ -187,7 +187,7 @@ export class AuthController extends Controller {
     });
 
     return toResponse({
-      data: { message: "Password has been reset successfully" },
+      data: { message: "Password has been reset successfully!" },
     });
   }
 

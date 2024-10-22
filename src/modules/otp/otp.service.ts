@@ -7,6 +7,7 @@ import { randomString } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
 import dayjs from "dayjs";
 import { User } from "../user/user.types";
+
 const send = async (
   user: User,
   templateMethod: AuthTemplateType = "verifyEmail"
