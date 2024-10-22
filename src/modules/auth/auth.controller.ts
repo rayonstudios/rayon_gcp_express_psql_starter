@@ -27,9 +27,9 @@ import {
   AuthForgotPass,
   AuthLogin,
   AuthLoginResponse,
+  AuthResendMail,
   AuthResetPass,
   AuthTokenResponse,
-  AuthVerification,
   AuthVerifyEmail,
 } from "./auth.types";
 import authValidations from "./auth.validations";
@@ -192,17 +192,20 @@ export class AuthController extends Controller {
   }
 
   @Post("/changePassword")
+  @Security("jwt")
   @Middlewares(validateData(authValidations.changePass))
   public async changePassword(
-    @Body() body: AuthChangePass
+    @Body() body: AuthChangePass,
+    @Request() req: ExReq
   ): Promise<APIResponse<Message>> {
-    const { email, password } = body;
+    const { id } = getReqUser(req);
+    const { password } = body;
 
     const newHashedPassword = await authSerivce.hashPassword(password);
 
     await prisma.users.update({
       where: {
-        email: email,
+        id: id,
       },
       data: {
         password_hash: newHashedPassword,
@@ -215,9 +218,8 @@ export class AuthController extends Controller {
   }
 
   @Post("/resendVerification")
-  @Middlewares(validateData(authValidations.resendVerification))
   public async resendVerification(
-    @Body() body: AuthVerification
+    @Body() body: AuthResendMail
   ): Promise<APIResponse<Message>> {
     const user = await userService.fetchByEmail(body.email);
     if (!user) {
@@ -225,25 +227,26 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    await otpService.send(user, body.emailType);
+    await otpService.send(user, "verifyEmail");
 
     return toResponse({
       data: { message: "Verification Mail has been sent  successfully" },
     });
   }
+
   @Post("/refresh")
   @Security("jwt")
   public async refresh(
     @Request() req: ExReq
   ): Promise<APIResponse<AuthTokenResponse>> {
-    const user = getReqUser(req);
+    const { id } = getReqUser(req);
 
-    const getUser = await userService.fetch(user.id);
-    if (!getUser) {
+    const user = await userService.fetch(id);
+    if (!user) {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
     }
-    const tokens = await authSerivce.generateTokens(getUser);
+    const tokens = await authSerivce.generateTokens(user);
 
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
@@ -251,7 +254,7 @@ export class AuthController extends Controller {
     }
 
     return toResponse({
-      data: { ...tokens },
+      data: tokens,
     });
   }
 }

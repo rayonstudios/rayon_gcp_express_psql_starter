@@ -9,11 +9,6 @@ const forgotPass = z.object({
   email: z.string().email(),
 });
 
-const resendVerification = z.object({
-  email: z.string().email(),
-  emailType: z.string(),
-});
-
 const resetPass = z.object({
   email: z.string().email(),
   otp: z.string().length(6),
@@ -21,12 +16,7 @@ const resetPass = z.object({
 });
 
 const changePass = z.object({
-  email: z.string().email(),
   password: z.string().min(6),
-});
-
-const refreshToken = z.object({
-  token: z.string(),
 });
 
 const authValidations = {
@@ -34,8 +24,6 @@ const authValidations = {
   forgotPass,
   resetPass,
   changePass,
-  resendVerification,
-  refreshToken,
 };
 
 export default authValidations;

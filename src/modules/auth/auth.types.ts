@@ -1,4 +1,3 @@
-import { AuthTemplateType } from "#/src/lib/mail/mail.types";
 import { Role } from "#/src/lib/utils/roles";
 import { SanitizedUser, UserCreate } from "#/src/modules/user/user.types";
 
@@ -31,17 +30,11 @@ export type AuthResetPass = {
 };
 
 export type AuthChangePass = {
-  email: string;
   password: string;
 };
 
-export type AuthVerification = {
+export type AuthResendMail = {
   email: string;
-  emailType: AuthTemplateType;
-};
-
-export type AuthRefreshToken = {
-  token: string;
 };
 
 export type AuthTokenResponse = {
