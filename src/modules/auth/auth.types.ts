@@ -20,8 +20,6 @@ export type AuthVerifyEmail = {
   email: string;
 };
 
-<<<<<<< Updated upstream
-=======
 export type AuthForgotPass = {
   email: string;
 };
@@ -51,7 +49,6 @@ export type AuthTokenResponse = {
   refreshToken: string;
 };
 
->>>>>>> Stashed changes
 export type AuthLoginResponse = {
   user: SanitizedUser;
   accessToken: string;

@@ -23,10 +23,13 @@ import { sanitizeUser } from "../user/user.helpers";
 import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
 import {
+  AuthChangePass,
   AuthForgotPass,
   AuthLogin,
   AuthLoginResponse,
   AuthResetPass,
+  AuthTokenResponse,
+  AuthVerification,
   AuthVerifyEmail,
 } from "./auth.types";
 import authValidations from "./auth.validations";
@@ -116,12 +119,6 @@ export class AuthController extends Controller {
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
   ): Promise<APIResponse<Message>> {
-    const user = await userService.fetchByEmail(body.email);
-    if (!user) {
-      this.setStatus(statusConst.notFound.code);
-      return toResponse({ error: statusConst.notFound.message });
-    }
-
     const verified = await otpService.verify(body);
     if (!verified) {
       this.setStatus(statusConst.unAuthenticated.code);
@@ -129,7 +126,7 @@ export class AuthController extends Controller {
     }
 
     await prisma.users.update({
-      where: { id: user.id },
+      where: { email: body.email },
       data: { email_verified: true },
     });
 
@@ -170,7 +167,7 @@ export class AuthController extends Controller {
   }
 
   @Post("/resetPassword")
-  @Middlewares(authValidations.resetPass)
+  @Middlewares(validateData(authValidations.resetPass))
   public async resetPassword(
     @Body() body: AuthResetPass
   ): Promise<APIResponse<Message>> {
@@ -190,7 +187,71 @@ export class AuthController extends Controller {
     });
 
     return toResponse({
-      data: { message: "=Password has been reset successfully" },
+      data: { message: "Password has been reset successfully" },
+    });
+  }
+
+  @Post("/changePassword")
+  @Middlewares(validateData(authValidations.changePass))
+  public async changePassword(
+    @Body() body: AuthChangePass
+  ): Promise<APIResponse<Message>> {
+    const { email, password } = body;
+
+    const newHashedPassword = await authSerivce.hashPassword(password);
+
+    await prisma.users.update({
+      where: {
+        email: email,
+      },
+      data: {
+        password_hash: newHashedPassword,
+      },
+    });
+
+    return toResponse({
+      data: { message: "Password has been changed  successfully" },
+    });
+  }
+
+  @Post("/resendVerification")
+  @Middlewares(validateData(authValidations.resendVerification))
+  public async resendVerification(
+    @Body() body: AuthVerification
+  ): Promise<APIResponse<Message>> {
+    const user = await userService.fetchByEmail(body.email);
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
+
+    await otpService.send(user, body.emailType);
+
+    return toResponse({
+      data: { message: "Verification Mail has been sent  successfully" },
+    });
+  }
+  @Post("/refresh")
+  @Security("jwt")
+  public async refresh(
+    @Request() req: ExReq
+  ): Promise<APIResponse<AuthTokenResponse>> {
+    const user = getReqUser(req);
+
+    const getUser = await userService.fetch(user.id);
+    if (!getUser) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
+    const tokens = await authSerivce.generateTokens(getUser);
+
+    if (!tokens) {
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
+    }
+
+    return toResponse({
+      data: { ...tokens },
     });
   }
 }

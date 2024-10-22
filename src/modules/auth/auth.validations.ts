@@ -8,11 +8,6 @@ const login = z.object({
 const forgotPass = z.object({
   email: z.string().email(),
 });
-<<<<<<< Updated upstream
-const authValidations = {
-  login,
-  forgotPass,
-=======
 
 const resendVerification = z.object({
   email: z.string().email(),
@@ -39,7 +34,6 @@ const authValidations = {
   changePass,
   resendVerification,
   refreshToken,
->>>>>>> Stashed changes
 };
 
 export default authValidations;
