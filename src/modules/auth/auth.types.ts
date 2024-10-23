@@ -33,13 +33,8 @@ export type AuthChangePass = {
   password: string;
 };
 
-export type AuthResendMail = {
+export type AuthResendVerification = {
   email: string;
-};
-
-export type AuthTokenResponse = {
-  accessToken: string;
-  refreshToken: string;
 };
 
 export type AuthLoginResponse = {

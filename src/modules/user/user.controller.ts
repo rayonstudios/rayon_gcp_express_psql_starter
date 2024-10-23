@@ -18,6 +18,7 @@ import {
   Security,
   Tags,
 } from "tsoa";
+import otpService from "../otp/otp.service";
 import { sanitizeUser } from "./user.helpers";
 import userService from "./user.service";
 import {
@@ -59,13 +60,21 @@ export class UserController extends Controller {
   @Post()
   @Middlewares(validateData(userValidations.create)) // route level middlewares
   public async create(
-    @Body() body: UserCreate & { password: string }
+    @Body() body: UserCreate
   ): Promise<APIResponse<SanitizedUser>> {
-    const user = await userService.create(body);
-    if (!user) {
-      this.setStatus(statusConst.notFound.code);
-      return toResponse({ error: statusConst.notFound.message });
+    const existingUser = await userService.fetchByEmail(body.email);
+    if (existingUser) {
+      this.setStatus(statusConst.alreadyExists.code);
+      return toResponse({ error: statusConst.alreadyExists.message });
     }
+
+    const user = await userService.create({ ...body, password: "" });
+    if (!user) {
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
+    }
+
+    await otpService.send(user, "inviteUser");
 
     this.setStatus(statusConst.created.code);
     return toResponse({ data: sanitizeUser(user) });

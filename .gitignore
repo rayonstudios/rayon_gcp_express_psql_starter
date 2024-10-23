@@ -7,3 +7,4 @@ files/
 .DS_Store
 routes.ts
 swagger.json
+.eslintcache

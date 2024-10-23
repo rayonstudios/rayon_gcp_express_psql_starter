@@ -1,3 +1,5 @@
+import { FE_URL } from "../constants";
+
 const notification = {
   general: ({
     title,
@@ -38,6 +40,7 @@ const authentication = {
         otp,
         name,
         email,
+        link: `${FE_URL}/verify-email?email=${email}&otp=${otp}`,
       },
     };
   },
@@ -57,15 +60,26 @@ const authentication = {
         otp,
         name,
         email,
+        link: `${FE_URL}/reset-password?email=${email}&otp=${otp}`,
       },
     };
   },
-  createUser: ({ name, role }: { name: string; role: string }) => {
+
+  inviteUser: ({
+    name,
+    role,
+    link,
+  }: {
+    name: string;
+    role: string;
+    link: string;
+  }) => {
     return {
       id: 3,
       data: {
         name,
         role,
+        link,
       },
     };
   },

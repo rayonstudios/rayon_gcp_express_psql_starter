@@ -1,3 +1,4 @@
+import { FE_URL } from "#/src/lib/constants";
 import mailService from "#/src/lib/mail/mail.service";
 import {
   AuthTemplateParams,
@@ -8,22 +9,19 @@ import { prisma } from "#/src/lib/utils/prisma";
 import dayjs from "dayjs";
 import { User } from "../user/user.types";
 
-const send = async (
-  user: User,
-  templateMethod: AuthTemplateType = "verifyEmail"
-) => {
+const send = async (user: User, templateMethod: AuthTemplateType) => {
   const otp = randomString(6);
   await prisma.otps.create({
     data: { email: user.email, otp },
   });
 
-  const template = mailService.templates.authentication[templateMethod];
   let templateParams: AuthTemplateParams;
 
-  if (templateMethod === "createUser") {
+  if (templateMethod === "inviteUser") {
     templateParams = {
       name: user.name,
-      role: user.role || "",
+      role: user.role!,
+      link: `${FE_URL}/reset-password?email=${user.email}&otp=${otp}`,
     };
   } else {
     templateParams = {
@@ -32,10 +30,12 @@ const send = async (
       name: user.name,
     };
   }
+
   await mailService.send({
     to: user.email,
-    //@ts-ignore
-    template: template(templateParams),
+    template: mailService.templates.authentication[templateMethod](
+      templateParams as any
+    ),
   });
 };
 

@@ -27,9 +27,8 @@ import {
   AuthForgotPass,
   AuthLogin,
   AuthLoginResponse,
-  AuthResendMail,
+  AuthResendVerification,
   AuthResetPass,
-  AuthTokenResponse,
   AuthVerifyEmail,
 } from "./auth.types";
 import authValidations from "./auth.validations";
@@ -90,7 +89,7 @@ export class AuthController extends Controller {
     if (photo) {
       [photoUrl] = await fileService.save([{ ...photo }]);
     }
-    // create user in db
+
     const user = await userService.create({
       name,
       email,
@@ -103,7 +102,9 @@ export class AuthController extends Controller {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
     }
-    await otpService.send(user);
+
+    await otpService.send(user, "verifyEmail");
+
     const tokens = await authSerivce.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
@@ -115,18 +116,19 @@ export class AuthController extends Controller {
   }
 
   @Post("/verifyEmail")
-  @Middlewares(validateData(authValidations.login.omit({ password: true })))
+  @Middlewares(validateData(authValidations.resetPass.omit({ password: true })))
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
   ): Promise<APIResponse<Message>> {
-    const verified = await otpService.verify(body);
+    const { email, otp } = body;
+    const verified = await otpService.verify({ email, otp });
     if (!verified) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
     await prisma.users.update({
-      where: { email: body.email },
+      where: { email },
       data: { email_verified: true },
     });
 
@@ -136,9 +138,9 @@ export class AuthController extends Controller {
   @Post("/signoutAll")
   @Security("jwt")
   public async signout(@Request() req: ExReq): Promise<APIResponse<Message>> {
-    const user = getReqUser(req);
+    const { id } = getReqUser(req);
     await prisma.users.update({
-      where: { id: user.id },
+      where: { id },
       data: { refresh_token_version: { increment: 1 } },
     });
 
@@ -171,9 +173,9 @@ export class AuthController extends Controller {
   public async resetPassword(
     @Body() body: AuthResetPass
   ): Promise<APIResponse<Message>> {
-    const { password, ...restOfBody } = body;
+    const { password, email, otp } = body;
 
-    const verified = await otpService.verify(restOfBody);
+    const verified = await otpService.verify({ email, otp });
     if (!verified) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({ error: statusConst.unAuthenticated.message });
@@ -182,7 +184,7 @@ export class AuthController extends Controller {
     const newPassword = await authSerivce.hashPassword(password);
 
     await prisma.users.update({
-      where: { email: body.email },
+      where: { email },
       data: { password_hash: newPassword },
     });
 
@@ -205,7 +207,7 @@ export class AuthController extends Controller {
 
     await prisma.users.update({
       where: {
-        id: id,
+        id,
       },
       data: {
         password_hash: newHashedPassword,
@@ -218,8 +220,9 @@ export class AuthController extends Controller {
   }
 
   @Post("/resendVerification")
+  @Middlewares(validateData(authValidations.forgotPass))
   public async resendVerification(
-    @Body() body: AuthResendMail
+    @Body() body: AuthResendVerification
   ): Promise<APIResponse<Message>> {
     const user = await userService.fetchByEmail(body.email);
     if (!user) {
@@ -238,7 +241,7 @@ export class AuthController extends Controller {
   @Security("jwt")
   public async refresh(
     @Request() req: ExReq
-  ): Promise<APIResponse<AuthTokenResponse>> {
+  ): Promise<APIResponse<Omit<AuthLoginResponse, "user">>> {
     const { id } = getReqUser(req);
 
     const user = await userService.fetch(id);
@@ -246,8 +249,8 @@ export class AuthController extends Controller {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
     }
-    const tokens = await authSerivce.generateTokens(user);
 
+    const tokens = await authSerivce.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
