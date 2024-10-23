@@ -14,10 +14,16 @@ const resetPass = z.object({
   otp: z.string().length(6),
   password: z.string().min(6),
 });
+
+const changePass = z.object({
+  password: z.string().min(6),
+});
+
 const authValidations = {
   login,
   forgotPass,
   resetPass,
+  changePass,
 };
 
 export default authValidations;

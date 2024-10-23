@@ -19,10 +19,27 @@ export type AuthVerifyEmail = {
   email: string;
 };
 
+export type AuthForgotPass = {
+  email: string;
+};
+
 export type AuthResetPass = {
   email: string;
   otp: string;
   password: string;
+};
+
+export type AuthChangePass = {
+  password: string;
+};
+
+export type AuthResendMail = {
+  email: string;
+};
+
+export type AuthTokenResponse = {
+  accessToken: string;
+  refreshToken: string;
 };
 
 export type AuthLoginResponse = {

@@ -23,9 +23,13 @@ import { sanitizeUser } from "../user/user.helpers";
 import { getReqUser } from "./auth.helpers";
 import authSerivce from "./auth.service";
 import {
+  AuthChangePass,
+  AuthForgotPass,
   AuthLogin,
   AuthLoginResponse,
+  AuthResendMail,
   AuthResetPass,
+  AuthTokenResponse,
   AuthVerifyEmail,
 } from "./auth.types";
 import authValidations from "./auth.validations";
@@ -146,7 +150,7 @@ export class AuthController extends Controller {
   @Post("/forgotPassword")
   @Middlewares(validateData(authValidations.forgotPass))
   public async forgotPassword(
-    @Body() body: AuthVerifyEmail
+    @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
     const user = await userService.fetchByEmail(body.email);
 
@@ -184,6 +188,73 @@ export class AuthController extends Controller {
 
     return toResponse({
       data: { message: "Password has been reset successfully!" },
+    });
+  }
+
+  @Post("/changePassword")
+  @Security("jwt")
+  @Middlewares(validateData(authValidations.changePass))
+  public async changePassword(
+    @Body() body: AuthChangePass,
+    @Request() req: ExReq
+  ): Promise<APIResponse<Message>> {
+    const { id } = getReqUser(req);
+    const { password } = body;
+
+    const newHashedPassword = await authSerivce.hashPassword(password);
+
+    await prisma.users.update({
+      where: {
+        id: id,
+      },
+      data: {
+        password_hash: newHashedPassword,
+      },
+    });
+
+    return toResponse({
+      data: { message: "Password has been changed  successfully" },
+    });
+  }
+
+  @Post("/resendVerification")
+  public async resendVerification(
+    @Body() body: AuthResendMail
+  ): Promise<APIResponse<Message>> {
+    const user = await userService.fetchByEmail(body.email);
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
+
+    await otpService.send(user, "verifyEmail");
+
+    return toResponse({
+      data: { message: "Verification Mail has been sent  successfully" },
+    });
+  }
+
+  @Post("/refresh")
+  @Security("jwt")
+  public async refresh(
+    @Request() req: ExReq
+  ): Promise<APIResponse<AuthTokenResponse>> {
+    const { id } = getReqUser(req);
+
+    const user = await userService.fetch(id);
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
+    const tokens = await authSerivce.generateTokens(user);
+
+    if (!tokens) {
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
+    }
+
+    return toResponse({
+      data: tokens,
     });
   }
 }
