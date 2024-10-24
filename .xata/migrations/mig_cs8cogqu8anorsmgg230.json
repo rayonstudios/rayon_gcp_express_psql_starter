@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cs8cogqu8anorsmgg230",
+    "operations": [
+      {
+        "drop_table": {
+          "name": "tokens"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cs8cogqu8anorsmgg230",
+  "parent": "mig_cs8b69iu8anorsmgg1l0",
+  "schema": "public",
+  "startedAt": "2024-10-18T14:59:30.644438Z"
+}

@@ -1,0 +1,20 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cscitnene4je94tb6jf0",
+    "operations": [
+      {
+        "alter_column": {
+          "name": "author_id",
+          "table": "posts",
+          "column": "author"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cscitnene4je94tb6jf0",
+  "parent": "mig_cs93jts2vvgao6unecqg",
+  "schema": "public",
+  "startedAt": "2024-10-23T17:14:06.038112Z"
+}

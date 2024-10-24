@@ -1,0 +1,19 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cs93jts2vvgao6unecqg",
+    "operations": [
+      {
+        "drop_column": {
+          "table": "otps",
+          "column": "test"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cs93jts2vvgao6unecqg",
+  "parent": "mig_cs8hlesjvfnl258s5p8g",
+  "schema": "public",
+  "startedAt": "2024-10-18T14:59:42.710932Z"
+}

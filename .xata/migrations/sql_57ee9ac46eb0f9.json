@@ -1,0 +1,18 @@
+{
+  "done": true,
+  "migration": {
+    "name": "sql_57ee9ac46eb0f9",
+    "operations": [
+      {
+        "sql": {
+          "up": "CREATE TABLE _prisma_migrations (id varchar(36) PRIMARY KEY NOT NULL, checksum varchar(64) NOT NULL, finished_at timestamptz, migration_name varchar(255) NOT NULL, logs text, rolled_back_at timestamptz, started_at timestamptz NOT NULL DEFAULT now(), applied_steps_count int NOT NULL DEFAULT 0)"
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "sql_57ee9ac46eb0f9",
+  "parent": "mig_cs3u673ujno0fvdn3ir0",
+  "schema": "public",
+  "startedAt": "2024-10-18T14:58:10.905831Z"
+}

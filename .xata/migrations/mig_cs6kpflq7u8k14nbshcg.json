@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cs6kpflq7u8k14nbshcg",
+    "operations": [
+      {
+        "alter_column": {
+          "up": "\"email\"",
+          "down": "\"email\"",
+          "table": "users",
+          "column": "email",
+          "unique": {
+            "name": "users_email_unique"
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cs6kpflq7u8k14nbshcg",
+  "parent": "mig_cs6kov84alekuokhssg0",
+  "schema": "public",
+  "startedAt": "2024-10-18T14:58:54.488987Z"
+}

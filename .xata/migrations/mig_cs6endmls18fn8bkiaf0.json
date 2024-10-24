@@ -1,0 +1,22 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_cs6endmls18fn8bkiaf0",
+    "operations": [
+      {
+        "alter_column": {
+          "up": "(SELECT CASE WHEN \"otp\" IS NULL THEN '' ELSE \"otp\" END)",
+          "down": "(SELECT CASE WHEN \"otp\" IS NULL THEN '' ELSE \"otp\" END)",
+          "table": "otps",
+          "column": "otp",
+          "nullable": false
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_cs6endmls18fn8bkiaf0",
+  "parent": "mig_cs6en8mls18fn8bkiae0",
+  "schema": "public",
+  "startedAt": "2024-10-18T14:58:41.722056Z"
+}
