@@ -1,23 +1,17 @@
-//@ts-nocheck
 import * as fs from "fs";
-import * as readline from "readline";
 
 const schemaFilePath = "prisma/schema.prisma";
+let fileContent = fs.readFileSync(schemaFilePath, { encoding: "utf-8" });
 
-async function processSchema() {
-  const fileStream = fs.createReadStream(schemaFilePath);
-
-  const rl = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity,
-  });
-
+// renames xata_<field> to <field> and using @map()
+function renameXataFields() {
+  const rl = fileContent.split("\n");
   const outputLines: string[] = [];
   let insideModel = false;
   let currentModelName = "";
   const renamedFieldsMap: Record<string, Record<string, string>> = {};
 
-  for await (const line of rl) {
+  for (const line of rl) {
     const trimmedLine = line.trim();
 
     // Check if we are entering a model block
@@ -62,11 +56,11 @@ async function processSchema() {
         // **Handle @relation attributes in field attributes**
         fieldAttrs = fieldAttrs.replace(
           /@relation\(([^)]*)\)/g,
-          (match, relationContent) => {
+          (_, relationContent) => {
             // Update 'references' and 'fields' in @relation
             relationContent = relationContent.replace(
               /references:\s*\[([^\]]+)\]/,
-              (m, refs) => {
+              (_: any, refs: string) => {
                 const updatedRefs = refs.split(",").map((ref) => {
                   ref = ref.trim();
                   const newRef = renamedFieldsMap[currentModelName][ref] || ref;
@@ -78,7 +72,7 @@ async function processSchema() {
 
             relationContent = relationContent.replace(
               /fields:\s*\[([^\]]+)\]/,
-              (m, fields) => {
+              (_: any, fields: string) => {
                 const updatedFields = fields.split(",").map((field) => {
                   field = field.trim();
                   const newField =
@@ -129,7 +123,7 @@ async function processSchema() {
             // Update 'references' and 'fields' in @relation
             relationContent = relationContent.replace(
               /references:\s*\[([^\]]+)\]/,
-              (m, refs) => {
+              (_: any, refs: string) => {
                 const updatedRefs = refs.split(",").map((ref) => {
                   ref = ref.trim();
                   const newRef = renamedFieldsMap[currentModelName][ref] || ref;
@@ -141,7 +135,7 @@ async function processSchema() {
 
             relationContent = relationContent.replace(
               /fields:\s*\[([^\]]+)\]/,
-              (m, fields) => {
+              (_: any, fields: string) => {
                 const updatedFields = fields.split(",").map((field) => {
                   field = field.trim();
                   const newField =
@@ -164,10 +158,92 @@ async function processSchema() {
     }
   }
 
-  // Write the modified schema to the output file
-  fs.writeFileSync(schemaFilePath, outputLines.join("\n"));
+  fileContent = outputLines.join("\n");
 }
 
-processSchema().catch((error) => {
-  console.error("Error processing schema:", error);
-});
+// Renames relation fields to match similar to the foreign key field name
+function renameForeignRelation() {
+  const rl = fileContent.split("\n");
+
+  const outputLines: string[] = [];
+  let insideModel = false;
+  let currentModelName = "";
+
+  for (const line of rl) {
+    let modifiedLine = line;
+    const trimmedLine = line.trim();
+
+    // Check if we are entering a model block
+    const modelMatch = trimmedLine.match(/^model\s+(\w+)\s*{/);
+    if (modelMatch) {
+      insideModel = true;
+      currentModelName = modelMatch[1];
+      outputLines.push(line);
+      continue;
+    }
+
+    // Check if we are exiting a model block
+    if (insideModel && trimmedLine === "}") {
+      insideModel = false;
+      currentModelName = "";
+      outputLines.push(line);
+      continue;
+    }
+
+    if (insideModel) {
+      // Skip empty lines and comments
+      if (!trimmedLine || trimmedLine.startsWith("//")) {
+        outputLines.push(line);
+        continue;
+      }
+
+      // Match field lines
+      const fieldMatch = line.match(/^(\s*)(\w+)\s+(\w+)(.*)/);
+      if (fieldMatch) {
+        const indentation = fieldMatch[1];
+        let fieldName = fieldMatch[2];
+        const fieldType = fieldMatch[3];
+        let fieldAttrs = fieldMatch[4];
+
+        // Check if the field is a relation field
+        const relationMatch = fieldAttrs.match(/@relation\(([^)]*)\)/);
+        if (relationMatch) {
+          const relationArgs = relationMatch[1];
+
+          // Parse relation arguments to get 'fields' and 'references'
+          const fieldsMatch = relationArgs.match(/fields:\s*\[([^\]]+)\]/);
+          if (fieldsMatch) {
+            const foreignKeyFields = fieldsMatch[1]
+              .split(",")
+              .map((f) => f.trim());
+            if (foreignKeyFields.length === 1) {
+              const foreignKeyField = foreignKeyFields[0];
+              // Generate new field name based on foreign key field
+              let newFieldName = foreignKeyField;
+              // Remove '_id' suffix if present
+              if (newFieldName.endsWith("_id")) {
+                newFieldName = newFieldName.slice(0, -3);
+              }
+              // Rename the relation field if necessary
+              if (
+                fieldName === fieldType ||
+                fieldName === fieldType.toLowerCase()
+              ) {
+                fieldName = newFieldName;
+                modifiedLine = `${indentation}${fieldName} ${fieldType}${fieldAttrs}`;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    outputLines.push(modifiedLine);
+  }
+
+  fileContent = outputLines.join("\n");
+}
+
+renameXataFields();
+renameForeignRelation();
+fs.writeFileSync(schemaFilePath, fileContent);
