@@ -51,7 +51,8 @@ async function getMigrationDiff() {
 }
 
 (async () => {
-  console.log(process.env.COMMIT_MSG);
+  console.log("Commit msg:", process.env.COMMIT_MSG);
+  console.log("Xata env:", process.env.XATA_API_KEY);
 
   // console.log(`migration started from ${base} to ${target}`);
 
