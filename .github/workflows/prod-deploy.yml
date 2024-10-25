@@ -29,23 +29,23 @@ jobs:
           NODE_ENV: production
 
       - name: Start Xata Migration from dev to main
-        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true'
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
         run: |
           npx tsx ./scripts/migraiton-start dev main
 
-      - id: "auth"
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.SECRETJSON_PROD }}"
+      # - id: "auth"
+      #   uses: "google-github-actions/auth@v2"
+      #   with:
+      #     credentials_json: "${{ secrets.SECRETJSON_PROD }}"
 
-      - name: Set up Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v2"
+      # - name: Set up Cloud SDK
+      #   uses: "google-github-actions/setup-gcloud@v2"
 
-      - name: Deploy to Google App Engine
-        run: |
-          gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
+      # - name: Deploy to Google App Engine
+      #   run: |
+      #     gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
 
       - name: Complete Xata Migration from dev to main
-        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true'
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
         run: |
           npx tsx ./scripts/migraiton-complete dev main

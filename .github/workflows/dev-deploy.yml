@@ -13,27 +13,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Load Secrets in Env
-        run: |
-          npx tsx ./scripts/load-secrets
-        env:
-          NODE_ENV: dev
-          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
-          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+      # - name: Load Secrets in Env
+      #   run: |
+      #     npx tsx ./scripts/load-secrets
+      #   env:
+      #     NODE_ENV: dev
+      #     INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+      #     INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+      #     INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
-      - name: Env Replace in app.yaml
-        run: |
-          npx tsx ./scripts/env-replace
+      # - name: Env Replace in app.yaml
+      #   run: |
+      #     npx tsx ./scripts/env-replace
 
-      - id: "auth"
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.SECRETJSON_DEV }}"
+      # - id: "auth"
+      #   uses: "google-github-actions/auth@v2"
+      #   with:
+      #     credentials_json: "${{ secrets.SECRETJSON_DEV }}"
 
-      - name: Set up Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v2"
+      # - name: Set up Cloud SDK
+      #   uses: "google-github-actions/setup-gcloud@v2"
 
-      - name: Deploy to Google App Engine
-        run: |
-          gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
+      # - name: Deploy to Google App Engine
+      #   run: |
+      #     gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
