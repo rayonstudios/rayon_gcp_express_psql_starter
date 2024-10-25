@@ -1,6 +1,6 @@
-import { execSync } from "child_process";
+import { execSync, spawnSync } from "child_process";
 import fs from "fs";
-import { fetchSecret, importSecrets } from "./helpers";
+import { fetchSecret, importSecrets, isPRMerged } from "./helpers";
 
 importSecrets();
 
@@ -51,27 +51,29 @@ async function getMigrationDiff() {
 }
 
 (async () => {
-  console.log("Commit msg:", process.env.COMMIT_MSG);
-  console.log("Xata env:", process.env.XATA_API_KEY);
+  if (!isPRMerged(process.env.COMMIT_MSG || "", base)) {
+    console.log(`No PR merge detected from ${base} to ${target}. Exiting...`);
+    return;
+  }
 
-  // console.log(`migration started from ${base} to ${target}`);
+  console.log(`migration started from ${base} to ${target}`);
 
-  //   execSync(`npx xatapull ${base}`);
-  //   execSync(`mv .xata/migrations .xata/migrations-${base}`);
+  execSync(`npx xatapull ${base}`);
+  execSync(`mv .xata/migrations .xata/migrations-${base}`);
 
-  //   execSync(`npx xatapull ${target}`);
-  //   execSync(`mv .xata/migrations .xata/migrations-${target}`);
+  execSync(`npx xatapull ${target}`);
+  execSync(`mv .xata/migrations .xata/migrations-${target}`);
 
-  //   const diff = await getMigrationDiff();
-  //   console.log(diff);
+  const diff = await getMigrationDiff();
+  console.log(diff);
 
-  //   if (diff.length) {
-  //     spawnSync(
-  //       `npx xatamigrate start ${target} --migration-json '${JSON.stringify(diff)}'`,
-  //       {
-  //         stdio: "inherit",
-  //         shell: true,
-  //       }
-  //     );
-  //   }
+  if (diff.length) {
+    spawnSync(
+      `npx xatamigrate start ${target} --migration-json '${JSON.stringify(diff)}'`,
+      {
+        stdio: "inherit",
+        shell: true,
+      }
+    );
+  }
 })();

@@ -1,6 +1,6 @@
 import { execSync, spawnSync } from "child_process";
 import fs from "fs";
-import { importSecrets, updateSecret } from "./helpers";
+import { importSecrets, isPRMerged, updateSecret } from "./helpers";
 
 importSecrets();
 
@@ -9,6 +9,11 @@ const target = process.argv[3] || "main";
 console.log(`migration completing from ${base} to ${target}`);
 
 (async () => {
+  if (!isPRMerged(process.env.COMMIT_MSG || "", base)) {
+    console.log(`No PR merge detected from ${base} to ${target}. Exiting...`);
+    return;
+  }
+
   const output = execSync(`npx xatamigrate status ${target}`).toString();
   const status = output.trim().split("\n")[1].split(/\s+/)[3];
   console.log("status: ", status);

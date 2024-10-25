@@ -22,11 +22,15 @@ jobs:
       - name: Start Xata Migration from dev to main
         run: |
           npx tsx ./scripts/migraiton-start dev main
+        env:
+          COMMIT_MSG: "${{ github.event.head_commit.message }}"
 
-      - name: Sleep for 30 seconds
+      - name: Sleep for 15 seconds
         run: |
-          sleep 30
+          sleep 15
 
       - name: Complete Xata Migration from dev to main
         run: |
           npx tsx ./scripts/migraiton-complete dev main
+        env:
+          COMMIT_MSG: "${{ github.event.head_commit.message }}"

@@ -88,3 +88,10 @@ export async function updateSecret(key: string, value: string, env: string) {
 export function isAppEngine() {
   return process.env.GAE_ENV === "standard";
 }
+
+export function isPRMerged(commitMsg: string, fromBranch: string) {
+  return new RegExp(
+    String.raw`^Merge pull request #\d+ from .*\/${fromBranch}\b`,
+    "gm"
+  ).test(commitMsg);
+}
