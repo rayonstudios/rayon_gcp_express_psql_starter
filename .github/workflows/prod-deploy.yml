@@ -46,9 +46,15 @@ jobs:
       #   run: |
       #     gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
 
-      # - name: Complete Xata Migration from dev to main
-      #   run: |
-      #     if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
-      #       echo "Completing migration..."
-      #       npx tsx ./scripts/migraiton-complete dev main
-      #     fi
+      - name: Sleep for 15 seconds
+        run: |
+          sleep 15
+
+      - name: Complete Xata Migration from dev to main
+        run: |
+          if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
+            echo "Completing migration..."
+            npx tsx ./scripts/migraiton-complete dev main
+          fi
+        env:
+          COMMIT_MSG: "${{ github.event.head_commit.message }}"
