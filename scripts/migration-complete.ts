@@ -22,17 +22,17 @@ function getMigrationStatus() {
   const status = getMigrationStatus();
   console.log("status: ", status);
 
-  if (status === "active") {
-    spawnSync(`xata migrate complete ${target}`, {
-      stdio: "inherit",
-      shell: true,
-    });
-  }
+  if (status !== "active") return;
+
+  spawnSync(`xata migrate complete ${target}`, {
+    stdio: "inherit",
+    shell: true,
+  });
 
   const isCompleted = await shortPoll(() => {
     const status = getMigrationStatus();
     if (status === "completed") return true;
-    if (status === "active") return undefined; //continue polling
+    if (["active", "in_progress"].includes(status)) return undefined; //continue polling
     return false;
   }, 3000);
 
@@ -51,7 +51,7 @@ function getMigrationStatus() {
         .trim()
         .split("\n");
       const newLastMigrationId = ledger.at(-1) || "";
-      console.log(`${base} newLastMigrationId: `, newLastMigrationId);
+      console.log(`${branch} newLastMigrationId: `, newLastMigrationId);
 
       await updateSecret("_LAST_MIGRATION_ID", newLastMigrationId, branch);
     }

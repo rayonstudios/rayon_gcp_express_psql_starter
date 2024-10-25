@@ -109,3 +109,8 @@ export function shortPoll(fn: () => any, interval: number) {
     }
   });
 }
+
+export const getBEUrl = (env: string) =>
+  env === "dev"
+    ? "https://compact-flash-306512.el.r.appspot.com"
+    : "https://compact-flash-306512.el.r.appspot.com";
