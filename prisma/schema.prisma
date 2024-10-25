@@ -10,9 +10,9 @@ datasource db {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model otps {
-  id String@unique(map: "_pgroll_new_otps_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
-  created_at DateTime@default(now()) @db.Timestamptz(6) @map("xata_createdat")
-  updated_at DateTime@default(now()) @db.Timestamptz(6) @map("xata_updatedat")
+  id String   @unique(map: "_pgroll_new_otps_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
   otp String
   email String
 }
@@ -26,9 +26,9 @@ model posts {
   text String
   author_id String
   views Int
-  id String@unique(map: "_pgroll_new_posts_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
-  created_at DateTime@default(now()) @db.Timestamptz(6) @map("xata_createdat")
-  updated_at DateTime@default(now()) @db.Timestamptz(6) @map("xata_updatedat")
+  id String   @unique(map: "_pgroll_new_posts_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
   author users    @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users")
 }
 
@@ -36,9 +36,9 @@ model posts {
 model users {
   name String
   bio String
-  created_at DateTime@default(now()) @db.Timestamptz(6) @map("xata_createdat")
-  updated_at DateTime@default(now()) @db.Timestamptz(6) @map("xata_updatedat")
-  id String@unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  id String   @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
   refresh_token_version Int      @default(0)
   role String   @default("user")
   email_verified Boolean  @default(false)

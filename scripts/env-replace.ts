@@ -1,4 +1,7 @@
 import fs from "fs";
+import { importSecrets } from "./helpers";
+
+importSecrets();
 
 const filePath = `app.yaml`;
 let envFile = fs.readFileSync(filePath, "utf-8");
