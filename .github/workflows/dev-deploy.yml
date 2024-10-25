@@ -11,22 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Load Secrets in Env
-        run: |
-          npx tsx ./scripts/load-secrets
-        env:
-          NODE_ENV: dev
-          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
-          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
-
-      - name: Start Xata Migration from dev to main
-        run: |
-          npx tsx ./scripts/migration-start dev main
-        env:
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
+      # - name: Load Secrets in Env
+      #   run: |
+      #     npx tsx ./scripts/load-secrets
+      #   env:
+      #     NODE_ENV: dev
+      #     INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+      #     INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+      #     INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
       # - name: Env Replace in app.yaml
       #   run: |
