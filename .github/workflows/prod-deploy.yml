@@ -24,8 +24,7 @@ jobs:
 
       - name: Env Replace in app.yaml
         run: |
-          echo ${{ toJSON(github.event) }}
-          echo ${{ github.event_name }}
+          echo ${{ toJSON(github) }}
           npx tsx ./scripts/env-replace
         env:
           NODE_ENV: production
