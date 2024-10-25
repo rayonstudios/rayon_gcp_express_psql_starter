@@ -30,8 +30,8 @@ jobs:
 
       - name: Start Xata Migration from dev to main
         run: |
-          echo ${{ github.event.head_commit.message }}
-          if [[ ${{ github.event.head_commit.message }} =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
+          echo '${{ github.event.head_commit.message }}'
+          if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
             npx tsx ./scripts/migraiton-start dev main
           fi
 
@@ -49,6 +49,6 @@ jobs:
 
       - name: Complete Xata Migration from dev to main
         run: |
-          if [[ ${{ github.event.head_commit.message }} =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
+          if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
             npx tsx ./scripts/migraiton-complete dev main
           fi
