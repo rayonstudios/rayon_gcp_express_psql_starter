@@ -50,10 +50,6 @@ jobs:
       #   run: |
       #     gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
 
-      - name: Sleep for 15 seconds
-        run: |
-          sleep 15
-
       - name: Complete Xata Migration from dev to main
         run: |
           npx tsx ./scripts/migration-complete dev main

@@ -76,4 +76,7 @@ async function getMigrationDiff() {
       }
     );
   }
+
+  execSync(`rm -rf .xata/migrations-${base}`);
+  execSync(`rm -rf .xata/migrations-${target}`);
 })();
