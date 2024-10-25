@@ -1,4 +1,4 @@
-import { execSync, spawnSync } from "child_process";
+import { execSync } from "child_process";
 import fs from "fs";
 import { fetchSecret, importSecrets } from "./helpers";
 
@@ -6,9 +6,9 @@ importSecrets();
 
 const base = process.argv[2] || "dev";
 const target = process.argv[3] || "main";
-console.log(`migration started from ${base} to ${target}`);
 
 async function getLastMigrationId() {
+  execSync;
   let lastMigrationId = await fetchSecret("_LAST_MIGRATION_ID", base);
   if (!lastMigrationId) {
     const baseLedger = fs
@@ -51,22 +51,26 @@ async function getMigrationDiff() {
 }
 
 (async () => {
-  execSync(`npx xatapull ${base}`);
-  execSync(`mv .xata/migrations .xata/migrations-${base}`);
+  console.log(process.env.COMMIT_MSG);
 
-  execSync(`npx xatapull ${target}`);
-  execSync(`mv .xata/migrations .xata/migrations-${target}`);
+  // console.log(`migration started from ${base} to ${target}`);
 
-  const diff = await getMigrationDiff();
-  console.log(diff);
+  //   execSync(`npx xatapull ${base}`);
+  //   execSync(`mv .xata/migrations .xata/migrations-${base}`);
 
-  if (diff.length) {
-    spawnSync(
-      `npx xatamigrate start ${target} --migration-json '${JSON.stringify(diff)}'`,
-      {
-        stdio: "inherit",
-        shell: true,
-      }
-    );
-  }
+  //   execSync(`npx xatapull ${target}`);
+  //   execSync(`mv .xata/migrations .xata/migrations-${target}`);
+
+  //   const diff = await getMigrationDiff();
+  //   console.log(diff);
+
+  //   if (diff.length) {
+  //     spawnSync(
+  //       `npx xatamigrate start ${target} --migration-json '${JSON.stringify(diff)}'`,
+  //       {
+  //         stdio: "inherit",
+  //         shell: true,
+  //       }
+  //     );
+  //   }
 })();
