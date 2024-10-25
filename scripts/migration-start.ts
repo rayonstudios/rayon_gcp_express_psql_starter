@@ -58,10 +58,10 @@ async function getMigrationDiff() {
 
   console.log(`migration started from ${base} to ${target}`);
 
-  execSync(`npx xata pull ${base}`);
+  execSync(`xata pull ${base}`);
   execSync(`mv .xata/migrations .xata/migrations-${base}`);
 
-  execSync(`npx xata pull ${target}`);
+  execSync(`xata pull ${target}`);
   execSync(`mv .xata/migrations .xata/migrations-${target}`);
 
   const diff = await getMigrationDiff();
@@ -69,7 +69,7 @@ async function getMigrationDiff() {
 
   if (diff.length) {
     spawnSync(
-      `npx xata migrate start ${target} --migration-json '${JSON.stringify(diff)}'`,
+      `xata migrate start ${target} --migration-json '${JSON.stringify(diff)}'`,
       {
         stdio: "inherit",
         shell: true,
