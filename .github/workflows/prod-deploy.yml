@@ -29,11 +29,10 @@ jobs:
           NODE_ENV: production
 
       - name: Start Xata Migration from dev to main
+        env:
+          COMMIT_MSG: "${{ github.event.head_commit.message }}"
         run: |
-          if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
-            echo "Starting migration..."
-            npx tsx ./scripts/migraiton-start dev main
-          fi
+          npx tsx ./scripts/migraiton-start dev main
 
       # - id: "auth"
       #   uses: "google-github-actions/auth@v2"
@@ -47,9 +46,9 @@ jobs:
       #   run: |
       #     gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
 
-      - name: Complete Xata Migration from dev to main
-        run: |
-          if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
-            echo "Completing migration..."
-            npx tsx ./scripts/migraiton-complete dev main
-          fi
+      # - name: Complete Xata Migration from dev to main
+      #   run: |
+      #     if [[ '${{ github.event.head_commit.message }}' =~ '^Merge pull request #\d+ from .*\/dev\b' ]]; then
+      #       echo "Completing migration..."
+      #       npx tsx ./scripts/migraiton-complete dev main
+      #     fi
