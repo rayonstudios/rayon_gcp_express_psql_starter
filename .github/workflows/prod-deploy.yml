@@ -28,6 +28,10 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Install Xata CLI
+        run: |
+          npm install -g @xata.io/cli@latest
+
       - name: Start Xata Migration from dev to main
         run: |
           npx tsx ./scripts/migration-start dev main

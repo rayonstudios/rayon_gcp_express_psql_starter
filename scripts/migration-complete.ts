@@ -14,12 +14,12 @@ console.log(`migration completing from ${base} to ${target}`);
     return;
   }
 
-  const output = execSync(`npx xata migrate status ${target}`).toString();
+  const output = execSync(`xata migrate status ${target}`).toString();
   const status = output.trim().split("\n")[1].split(/\s+/)[3];
   console.log("status: ", status);
 
   if (status === "active") {
-    spawnSync(`npx xata migrate complete ${target}`, {
+    spawnSync(`xata migrate complete ${target}`, {
       stdio: "inherit",
       shell: true,
     });
