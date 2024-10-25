@@ -54,7 +54,7 @@ Deployment is managed through GitHub Actions, with automatic deployments to Goog
     ```bash
     INFISICAL_CLIENT_ID=<your-infisical-client-id>
     INFISICAL_CLIENT_SECRET=<your-infisical-client-secret>
-    INFISICAL_WORKSPACE_SLUG=<your-infisical-workspace-slug>
+    INFISICAL_PROJECT_ID=<your-infisical-workspace-slug>
     ```
 2. Install dependencies:
     ```bash
@@ -72,6 +72,7 @@ Deployment is managed through GitHub Actions, with automatic deployments to Goog
 - **Snake case** should be used for database field names.
 - Use `statusConst` to define HTTP status codes and messages, rather than hardcoding them.
 - Basic request validation can be handled by tsoa through TypeScript, but use zod for advanced validation (e.g., email format, min/max constraints).
+- Files in **scripts folder should not have any external dependencies**, as they are meant to be run prior to dependencies installation.
 
 ## Roadmap
 - [ ] Add unit tests

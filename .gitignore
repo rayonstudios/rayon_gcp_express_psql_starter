@@ -8,3 +8,5 @@ files/
 routes.ts
 swagger.json
 .eslintcache
+
+.xata/migrations*/

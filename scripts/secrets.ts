@@ -1,9 +1,19 @@
-import { isAppEngine } from "#/src/lib/utils";
-import { loadSecrets } from "#/src/lib/utils/infisical";
 import fs from "fs";
+import { fetchSecrets, isAppEngine } from "./helpers";
+
+if (fs.existsSync("./.env.infisical")) {
+  const content = fs.readFileSync("./.env.infisical", "utf-8").trim();
+  const lines = content.split("\n");
+  lines.forEach((line) => {
+    const [key, value] = line.split("=");
+    process.env[key] = value;
+  });
+}
 
 (async () => {
-  const secrets = await loadSecrets();
+  const secrets = await fetchSecrets(
+    process.env.ENV ?? process.env.NODE_ENV ?? "dev"
+  );
 
   if (!isAppEngine()) {
     const secret = secrets.find(

@@ -1,11 +1,11 @@
 import { RegisterRoutes } from "#/routes";
+import { fetchSecrets } from "#/scripts/helpers";
 import cors from "cors";
 import express, { json, urlencoded } from "express";
 import morgan from "morgan";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
-import { toResponse } from "./lib/utils";
-import { loadSecrets } from "./lib/utils/infisical";
+import { isDevEnv, toResponse } from "./lib/utils";
 import { statusConst } from "./lib/utils/status";
 import { globalErrorHandler } from "./middlewares/error.middleware";
 import { setupSwagger } from "./middlewares/swagger.middleware";
@@ -54,7 +54,7 @@ app.post("/api/reload_secrets", async (req, res) => {
     return;
   }
 
-  const secrets = await loadSecrets();
+  const secrets = await fetchSecrets(isDevEnv() ? "dev" : "production");
   secrets.forEach((secret) => {
     process.env[secret.secretKey] = secret.secretValue;
   });
