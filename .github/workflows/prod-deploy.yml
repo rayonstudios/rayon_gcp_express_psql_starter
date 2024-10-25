@@ -38,17 +38,17 @@ jobs:
         env:
           COMMIT_MSG: "${{ github.event.head_commit.message }}"
 
-      # - id: "auth"
-      #   uses: "google-github-actions/auth@v2"
-      #   with:
-      #     credentials_json: "${{ secrets.SECRETJSON_PROD }}"
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.SECRETJSON_PROD }}"
 
-      # - name: Set up Cloud SDK
-      #   uses: "google-github-actions/setup-gcloud@v2"
+      - name: Set up Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v2"
 
-      # - name: Deploy to Google App Engine
-      #   run: |
-      #     gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
+      - name: Deploy to Google App Engine
+        run: |
+          gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
 
       - name: Complete Xata Migration from dev to main
         run: |
