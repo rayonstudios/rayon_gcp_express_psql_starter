@@ -95,3 +95,17 @@ export function isPRMerged(commitMsg: string, fromBranch: string) {
     "gm"
   ).test(commitMsg);
 }
+
+export function shortPoll(fn: () => any, interval: number) {
+  return new Promise<boolean>(async (resolve) => {
+    while (true) {
+      const result = await fn();
+      if (typeof result === "boolean") {
+        resolve(result);
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+  });
+}
