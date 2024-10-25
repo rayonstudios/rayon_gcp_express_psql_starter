@@ -21,7 +21,7 @@ jobs:
 
       - name: Start Xata Migration from main to dev
         run: |
-          npx tsx ./scripts/migraiton-start main dev
+          npx tsx ./scripts/migration-start main dev
         env:
           COMMIT_MSG: "${{ github.event.head_commit.message }}"
 
@@ -31,6 +31,6 @@ jobs:
 
       - name: Complete Xata Migration from main to dev
         run: |
-          npx tsx ./scripts/migraiton-complete main dev
+          npx tsx ./scripts/migration-complete main dev
         env:
           COMMIT_MSG: "${{ github.event.head_commit.message }}"
