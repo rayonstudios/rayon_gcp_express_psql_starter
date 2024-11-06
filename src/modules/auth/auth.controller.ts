@@ -19,8 +19,10 @@ import {
 } from "tsoa";
 import fileService from "../file/file.service";
 import otpService from "../otp/otp.service";
-import { sanitizeUser } from "../user/user.helpers";
+import userSerializer from "../user/user.serializer";
+import { SanitizedUser } from "../user/user.types";
 import { getReqUser } from "./auth.helpers";
+import authSerializer from "./auth.serializer";
 import authSerivce from "./auth.service";
 import {
   AuthChangePass,
@@ -59,7 +61,7 @@ export class AuthController extends Controller {
     }
 
     return toResponse({
-      data: { ...tokens, user: sanitizeUser(user) },
+      data: authSerializer.login(tokens, user),
     });
   }
 
@@ -71,7 +73,7 @@ export class AuthController extends Controller {
     @FormField() password: string,
     @FormField() bio?: string,
     @UploadedFile() photo?: Express.Multer.File
-  ): Promise<APIResponse<AuthLoginResponse>> {
+  ): Promise<APIResponse<SanitizedUser>> {
     if (photo && !isImage(photo.mimetype)) {
       this.setStatus(statusConst.invalidData.code);
       return toResponse({
@@ -98,20 +100,10 @@ export class AuthController extends Controller {
       photo: photoUrl,
       role: Role.USER,
     });
-    if (!user) {
-      this.setStatus(statusConst.internal.code);
-      return toResponse({ error: statusConst.internal.message });
-    }
-
     await otpService.send(user, "verifyEmail");
 
-    const tokens = await authSerivce.generateTokens(user);
-    if (!tokens) {
-      this.setStatus(statusConst.internal.code);
-      return toResponse({ error: statusConst.internal.message });
-    }
     return toResponse({
-      data: { ...tokens, user: sanitizeUser(user) },
+      data: userSerializer.single(user),
     });
   }
 
@@ -185,7 +177,7 @@ export class AuthController extends Controller {
 
     await prisma.users.update({
       where: { email },
-      data: { password_hash: newPassword },
+      data: { password_hash: newPassword, email_verified: true },
     });
 
     return toResponse({

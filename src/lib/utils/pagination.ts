@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { cloneDeep } from "lodash";
+import { cloneDeep, omit } from "lodash";
 import { prisma } from "./prisma";
 
 export type PaginationParams = {
@@ -25,7 +25,7 @@ export const paginatedQuery = async <T>(
 
   const [list, total] = await prisma.$transaction([
     (prisma[model] as any).findMany(findQuery),
-    (prisma[model] as any).count(query),
+    (prisma[model] as any).count(omit(query, ["include", "select"])),
   ]);
 
   return {

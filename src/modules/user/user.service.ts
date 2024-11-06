@@ -1,5 +1,6 @@
 import { paginatedQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
+import { withSearch } from "#/src/lib/utils/search";
 import { omit } from "lodash";
 import authService from "../auth/auth.service";
 import { User, UserCreate, UserFetchList, UserUpdate } from "./user.types";
@@ -23,50 +24,43 @@ async function fetchByEmail(email: string) {
 }
 
 async function fetchList(filters?: UserFetchList) {
-  const query: Parameters<typeof prisma.users.findMany>[0] = {};
-  if (filters?.name) {
-    query.where = {
-      name: filters.name,
-    };
-  }
+  let query: Parameters<typeof prisma.users.findMany>[0] = {};
 
-  return paginatedQuery<User>("users", query, filters);
+  if (filters?.search)
+    query = withSearch(query, ["name", "bio", "email"], filters.search);
+
+  const res = await paginatedQuery<User>("users", query, filters);
+  return res;
 }
 
 async function create(data: UserCreate & { password: string }) {
   const password_hash = await authService.hashPassword(data.password);
-  const user = await prisma.users
-    .create({
-      data: {
-        ...omit(data, "password"),
-        password_hash,
-        bio: data.bio || "",
-      },
-    })
-    .catch(() => null);
+  const user = await prisma.users.create({
+    data: {
+      ...omit(data, "password"),
+      password_hash,
+      bio: data.bio || "",
+    },
+  });
   return user;
 }
 
 async function update(id: string, data: UserUpdate) {
-  const user = await prisma.users
-    .update({
-      where: {
-        id,
-      },
-      data: omit(data, "id"),
-    })
-    .catch(() => null);
+  const user = await prisma.users.update({
+    where: {
+      id,
+    },
+    data: omit(data, "id"),
+  });
   return user;
 }
 
 async function remove(id: string) {
-  const user = await prisma.users
-    .delete({
-      where: {
-        id,
-      },
-    })
-    .catch(() => null);
+  const user = await prisma.users.delete({
+    where: {
+      id,
+    },
+  });
   return user;
 }
 
