@@ -35,6 +35,7 @@ Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffol
 - 📊 **One-liner Pagination for Models**: Easily implement pagination for any database model with a single line of code.
 - 🔍 **One-liner Multi-Column Search**: Add multi-column search functionality to your modules with a single line of code using the `withSearch` higher-order function, mimicking full-text search capabilities.
 - 🛑 **Global Error Handling**: Catch and manage errors gracefully across your entire application with centralized error handling.
+- 🛡️ **hCaptcha Protection**: Secure sensitive public routes with hCaptcha to prevent automated abuse and spam.
 - ✅ **ESLint Integration**: Keep your codebase clean and consistent with linting rules enforced by ESLint.
 - 🌍 **Development & Production Environment Separation**: Seamlessly switch between dev and prod configurations with environment-specific settings.
 - 📁 **Feature-based Folder Structure**: Organize your project with a clear, scalable folder structure separating core logic by feature.
