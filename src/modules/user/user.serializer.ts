@@ -1,15 +1,10 @@
-import { PaginationResponse } from "#/src/lib/utils/pagination";
+import { getSerializers } from "#/src/lib/utils/serializer";
 import { sanitizeUser } from "./user.helpers";
 import { User } from "./user.types";
 
-const single = (user: User) => sanitizeUser(user);
-
-const multiple = (users: User[]) => users.map(sanitizeUser);
-
-const paginated = (data: PaginationResponse<User>) => ({
-  ...data,
-  list: multiple(data.list),
-});
+const { single, multiple, paginated } = getSerializers((user: User) =>
+  sanitizeUser(user)
+);
 
 const userSerializer = {
   single,
