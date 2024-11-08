@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const create = z.object({
   email: z.string().email(),
-  role: z.nativeEnum(Role),
+  role: z.nativeEnum(Role).optional(),
 });
 
 const userValidations = {

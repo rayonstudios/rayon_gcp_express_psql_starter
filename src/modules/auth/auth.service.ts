@@ -1,5 +1,8 @@
+import { ExReq } from "#/src/lib/types/misc";
+import { getIp, isAppEngine } from "#/src/lib/utils";
 import { User } from "#/src/modules/user/user.types";
 import bcrypt from "bcrypt";
+import { verify } from "hcaptcha";
 import jwt from "jsonwebtoken";
 
 async function generateTokens(user: User) {
@@ -52,11 +55,27 @@ async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
+async function verifyHcaptcha(hcaptcha_token: string, req: ExReq) {
+  if (!isAppEngine()) return true;
+
+  if (!hcaptcha_token) return false;
+
+  const { success } = await verify(
+    process.env.HCAPTCHA_SECRET!,
+    hcaptcha_token,
+    getIp(req),
+    process.env.HCAPTCHA_SITE_KEY
+  );
+
+  return success;
+}
+
 const authService = {
   generateTokens,
   verifyToken,
   hashPassword,
   verifyPassword,
+  verifyHcaptcha,
 };
 
 export default authService;

@@ -29,7 +29,6 @@ import {
   AuthForgotPass,
   AuthLogin,
   AuthLoginResponse,
-  AuthResendVerification,
   AuthResetPass,
   AuthVerifyEmail,
 } from "./auth.types";
@@ -68,12 +67,21 @@ export class AuthController extends Controller {
   @Post("/signup")
   @Middlewares(validateData(authValidations.login))
   public async signup(
+    @Request() req: ExReq,
     @FormField() name: string,
     @FormField() email: string,
     @FormField() password: string,
     @FormField() bio?: string,
+    @FormField() hcaptcha_token?: string,
     @UploadedFile() photo?: Express.Multer.File
   ): Promise<APIResponse<SanitizedUser>> {
+    if (!(await authSerivce.verifyHcaptcha(hcaptcha_token || "", req))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({
+        error: "Hcaptch verification failed",
+      });
+    }
+
     if (photo && !isImage(photo.mimetype)) {
       this.setStatus(statusConst.invalidData.code);
       return toResponse({
@@ -144,8 +152,16 @@ export class AuthController extends Controller {
   @Post("/forgotPassword")
   @Middlewares(validateData(authValidations.forgotPass))
   public async forgotPassword(
+    @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
+    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({
+        error: "Hcaptch verification failed",
+      });
+    }
+
     const user = await userService.fetchByEmail(body.email);
 
     if (!user) {
@@ -214,8 +230,16 @@ export class AuthController extends Controller {
   @Post("/resendVerification")
   @Middlewares(validateData(authValidations.forgotPass))
   public async resendVerification(
-    @Body() body: AuthResendVerification
+    @Request() req: ExReq,
+    @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
+    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({
+        error: "Hcaptch verification failed",
+      });
+    }
+
     const user = await userService.fetchByEmail(body.email);
     if (!user) {
       this.setStatus(statusConst.notFound.code);

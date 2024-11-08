@@ -4,7 +4,7 @@ import { PaginationParams } from "#/src/lib/utils/pagination";
 import { Prisma } from "@prisma/client";
 import { Optional } from "@prisma/client/runtime/library";
 
-export type User = Omit<Prisma.usersCreateInput, "posts">;
+export type User = Prisma.usersCreateWithoutPostsInput;
 
 export type SanitizedUser = Omit<
   User,

@@ -59,7 +59,7 @@ export class UserController extends Controller {
     });
   }
 
-  @Post()
+  @Post("/")
   @Middlewares(validateData(userValidations.create)) // route level middlewares
   public async create(
     @Body() body: UserCreate,
