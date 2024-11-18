@@ -1,6 +1,5 @@
 const eslintConfigPrettier = require("eslint-config-prettier");
 const unusedImports = require("eslint-plugin-unused-imports");
-const eslintPluginJest = require("eslint-plugin-jest");
 
 module.exports = [
   {
@@ -15,7 +14,6 @@ module.exports = [
     parser: "@typescript-eslint/parser",
     plugins: {
       "unused-imports": unusedImports,
-      jest: eslintPluginJest,
     },
     rules: {
       "@typescript-eslint/no-unused-vars": "off",
@@ -31,15 +29,6 @@ module.exports = [
       ],
     },
   },
-  {
-    overrides: [
-      {
-        files: ["./tests/**/*"],
-        env: {
-          jest: true,
-        },
-      },
-    ],
-  },
+
   eslintConfigPrettier,
 ];
