@@ -21,6 +21,7 @@ export type AuthVerifyEmail = {
 
 export type AuthForgotPass = {
   email: string;
+  hcaptcha_token?: string;
 };
 
 export type AuthResetPass = {
@@ -31,10 +32,6 @@ export type AuthResetPass = {
 
 export type AuthChangePass = {
   password: string;
-};
-
-export type AuthResendVerification = {
-  email: string;
 };
 
 export type AuthLoginResponse = {

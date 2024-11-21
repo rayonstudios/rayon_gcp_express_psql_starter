@@ -1,4 +1,3 @@
-import { FE_URL } from "#/src/lib/constants";
 import mailService from "#/src/lib/mail/mail.service";
 import {
   AuthTemplateParams,
@@ -19,9 +18,10 @@ const send = async (user: User, templateMethod: AuthTemplateType) => {
 
   if (templateMethod === "inviteUser") {
     templateParams = {
+      otp,
       name: user.name,
+      email: user.email,
       role: user.role!,
-      link: `${FE_URL}/reset-password?email=${user.email}&otp=${otp}`,
     };
   } else {
     templateParams = {

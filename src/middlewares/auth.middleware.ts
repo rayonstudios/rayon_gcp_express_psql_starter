@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { Role } from "../lib/utils/roles";
 import { statusConst } from "../lib/utils/status";
 import authService from "../modules/auth/auth.service";
 import { AuthUser } from "../modules/auth/auth.types";
@@ -18,6 +19,9 @@ export const expressAuthentication = async (
 
     const user = (await authService.verifyToken(token, type)) as AuthUser;
     if (!user) return sendUnAuthResponse();
+
+    // Admin role is a subset of SuperAdmin role
+    if (scopes?.includes(Role.ADMIN)) scopes.push(Role.SUPER_ADMIN);
 
     if (scopes?.length && !scopes.includes(user.role)) {
       return Promise.reject({ code: statusConst.unAuthorized.code });

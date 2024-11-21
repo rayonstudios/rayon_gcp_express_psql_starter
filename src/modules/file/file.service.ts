@@ -37,7 +37,7 @@ const _save = async (file: File, overwrite: boolean) => {
 
 const fetch = async (fileUrl: string) => {
   const bucket = admin.storage().bucket();
-  let filePath = pathFromUrl(fileUrl);
+  const filePath = pathFromUrl(fileUrl);
 
   const [file] = await bucket.file(filePath).get();
   return file;
@@ -50,7 +50,7 @@ const save = async (files: File[], overwrite = false) => {
 
 const remove = async (fileUrl: string) => {
   const bucket = admin.storage().bucket();
-  let filePath = pathFromUrl(fileUrl);
+  const filePath = pathFromUrl(fileUrl);
 
   await bucket.file(filePath).delete();
 };
