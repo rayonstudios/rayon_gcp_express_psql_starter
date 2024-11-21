@@ -16,4 +16,9 @@ import { fetchSecrets } from "./helpers";
       }, {} as any),
     })
   );
+
+  fs.writeFileSync(
+    ".env",
+    `XATA_API_KEY=${secrets.find((s) => s.secretKey === "XATA_API_KEY")?.secretValue}`
+  );
 })();
