@@ -1,7 +1,7 @@
-import { APIResponse } from "#/src/lib/types/misc";
+import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
-import { Role } from "#/src/lib/utils/roles";
+import { isAdminRole, isSuperAdminRole, Role } from "#/src/lib/utils/roles";
 import { statusConst } from "#/src/lib/utils/status";
 import { validateData } from "#/src/middlewares/validation.middleware";
 import {
@@ -14,12 +14,14 @@ import {
   Path,
   Post,
   Queries,
+  Request,
   Route,
   Security,
   Tags,
 } from "tsoa";
+import { getReqUser } from "../auth/auth.helpers";
 import otpService from "../otp/otp.service";
-import { sanitizeUser } from "./user.helpers";
+import userSerializer from "./user.serializer";
 import userService from "./user.service";
 import {
   SanitizedUser,
@@ -43,7 +45,7 @@ export class UserController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    return toResponse({ data: sanitizeUser(user) });
+    return toResponse({ data: userSerializer.single(user) });
   }
 
   @Get("/")
@@ -53,45 +55,60 @@ export class UserController extends Controller {
   ): Promise<APIResponse<PaginationResponse<SanitizedUser>>> {
     const res = await userService.fetchList(query);
     return toResponse({
-      data: { ...res, list: res.list.map(sanitizeUser) },
+      data: userSerializer.paginated(res),
     });
   }
 
-  @Post()
+  @Post("/")
   @Middlewares(validateData(userValidations.create)) // route level middlewares
   public async create(
-    @Body() body: UserCreate
+    @Body() body: UserCreate,
+    @Request() req: ExReq
   ): Promise<APIResponse<SanitizedUser>> {
+    const reqUser = getReqUser(req);
+
     const existingUser = await userService.fetchByEmail(body.email);
     if (existingUser) {
       this.setStatus(statusConst.alreadyExists.code);
       return toResponse({ error: statusConst.alreadyExists.message });
     }
 
-    const user = await userService.create({ ...body, password: "" });
-    if (!user) {
-      this.setStatus(statusConst.internal.code);
-      return toResponse({ error: statusConst.internal.message });
+    if (isAdminRole(body.role || "") && !isSuperAdminRole(reqUser.role)) {
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
     }
 
+    const user = await userService.create({ ...body, password: "" });
     await otpService.send(user, "inviteUser");
 
     this.setStatus(statusConst.created.code);
-    return toResponse({ data: sanitizeUser(user) });
+    return toResponse({ data: userSerializer.single(user) });
   }
 
   @Patch("{userId}")
   public async update(
     @Path() userId: string,
-    @Body() body: UserUpdate
+    @Body() body: UserUpdate,
+    @Request() req: ExReq
   ): Promise<APIResponse<SanitizedUser>> {
-    const user = await userService.update(userId, body);
-    if (!user) {
+    const reqUser = getReqUser(req);
+
+    const existingUser = await userService.fetch(userId);
+    if (!existingUser) {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    return toResponse({ data: sanitizeUser(user) });
+    if (
+      (isAdminRole(existingUser.role) || isAdminRole(body.role || "")) &&
+      !isSuperAdminRole(reqUser.role)
+    ) {
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
+    }
+
+    const user = await userService.update(userId, body);
+    return toResponse({ data: userSerializer.single(user) });
   }
 
   @Delete("{userId}")
@@ -99,11 +116,6 @@ export class UserController extends Controller {
     @Path() userId: string
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.remove(userId);
-    if (!user) {
-      this.setStatus(statusConst.notFound.code);
-      return toResponse({ error: statusConst.notFound.message });
-    }
-
-    return toResponse({ data: sanitizeUser(user) });
+    return toResponse({ data: userSerializer.single(user) });
   }
 }

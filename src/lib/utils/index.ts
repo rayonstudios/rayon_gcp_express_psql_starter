@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
 import { APIResponse } from "../types/misc";
+import { GenericObject } from "../types/utils";
 
 export const isDevEnv = () => {
   return process.env.NODE_ENV === "dev";
@@ -31,4 +32,22 @@ export const randomString = (len: number) => {
 
 export const isImage = (type: string) => {
   return type.startsWith("image");
+};
+
+export const slugify = (str: string) => {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+};
+
+export const getIp = (req: GenericObject) => {
+  const ip =
+    req.clientIp ||
+    req.ip ||
+    req.headers["x-forwarded-for"]?.split(",").pop() ||
+    req.socket?.remoteAddress;
+
+  const prefix = "::ffff:";
+  if (ip?.startsWith(prefix)) return ip.slice(prefix.length);
 };

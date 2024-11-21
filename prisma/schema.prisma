@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -25,10 +26,10 @@ model posts {
   slug String
   text String
   author_id String
-  views Int
   id String   @unique(map: "_pgroll_new_posts_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
   created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  views Int      @default(0)
   author users    @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users")
 }
 

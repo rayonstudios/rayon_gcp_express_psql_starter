@@ -66,20 +66,23 @@ const authentication = {
   },
 
   inviteUser: ({
+    otp,
     name,
+    email,
     role,
-    link,
   }: {
+    otp: string;
     name: string;
-    role: string;
-    link: string;
+    email: string;
+    role?: string;
   }) => {
     return {
       id: 3,
       data: {
         name,
         role,
-        link,
+        link: `${FE_URL}/reset-password?email=${email}&otp=${otp}&new=true`,
+        otp,
       },
     };
   },

@@ -19,10 +19,6 @@ jobs:
           INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
-      - name: Install Xata CLI
-        run: |
-          npm install -g @xata.io/cli@latest
-
       - name: Start Xata Migration from main to dev
         run: |
           npx tsx ./scripts/migration-start main dev

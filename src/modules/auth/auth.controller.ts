@@ -19,15 +19,16 @@ import {
 } from "tsoa";
 import fileService from "../file/file.service";
 import otpService from "../otp/otp.service";
-import { sanitizeUser } from "../user/user.helpers";
+import userSerializer from "../user/user.serializer";
+import { SanitizedUser } from "../user/user.types";
 import { getReqUser } from "./auth.helpers";
+import authSerializer from "./auth.serializer";
 import authSerivce from "./auth.service";
 import {
   AuthChangePass,
   AuthForgotPass,
   AuthLogin,
   AuthLoginResponse,
-  AuthResendVerification,
   AuthResetPass,
   AuthVerifyEmail,
 } from "./auth.types";
@@ -59,19 +60,28 @@ export class AuthController extends Controller {
     }
 
     return toResponse({
-      data: { ...tokens, user: sanitizeUser(user) },
+      data: authSerializer.login(tokens, user),
     });
   }
 
   @Post("/signup")
   @Middlewares(validateData(authValidations.login))
   public async signup(
+    @Request() req: ExReq,
     @FormField() name: string,
     @FormField() email: string,
     @FormField() password: string,
     @FormField() bio?: string,
+    @FormField() hcaptcha_token?: string,
     @UploadedFile() photo?: Express.Multer.File
-  ): Promise<APIResponse<AuthLoginResponse>> {
+  ): Promise<APIResponse<SanitizedUser>> {
+    if (!(await authSerivce.verifyHcaptcha(hcaptcha_token || "", req))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({
+        error: "Hcaptch verification failed",
+      });
+    }
+
     if (photo && !isImage(photo.mimetype)) {
       this.setStatus(statusConst.invalidData.code);
       return toResponse({
@@ -98,20 +108,10 @@ export class AuthController extends Controller {
       photo: photoUrl,
       role: Role.USER,
     });
-    if (!user) {
-      this.setStatus(statusConst.internal.code);
-      return toResponse({ error: statusConst.internal.message });
-    }
-
     await otpService.send(user, "verifyEmail");
 
-    const tokens = await authSerivce.generateTokens(user);
-    if (!tokens) {
-      this.setStatus(statusConst.internal.code);
-      return toResponse({ error: statusConst.internal.message });
-    }
     return toResponse({
-      data: { ...tokens, user: sanitizeUser(user) },
+      data: userSerializer.single(user),
     });
   }
 
@@ -119,7 +119,7 @@ export class AuthController extends Controller {
   @Middlewares(validateData(authValidations.resetPass.omit({ password: true })))
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
-  ): Promise<APIResponse<Message>> {
+  ): Promise<APIResponse<AuthLoginResponse>> {
     const { email, otp } = body;
     const verified = await otpService.verify({ email, otp });
     if (!verified) {
@@ -127,12 +127,20 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
-    await prisma.users.update({
+    const user = await prisma.users.update({
       where: { email },
       data: { email_verified: true },
     });
 
-    return toResponse({ data: { message: "Email successfully verified!" } });
+    const tokens = await authSerivce.generateTokens(user);
+    if (!tokens) {
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
+    }
+
+    return toResponse({
+      data: authSerializer.login(tokens, user),
+    });
   }
 
   @Post("/signoutAll")
@@ -152,8 +160,16 @@ export class AuthController extends Controller {
   @Post("/forgotPassword")
   @Middlewares(validateData(authValidations.forgotPass))
   public async forgotPassword(
+    @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
+    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({
+        error: "Hcaptch verification failed",
+      });
+    }
+
     const user = await userService.fetchByEmail(body.email);
 
     if (!user) {
@@ -185,7 +201,7 @@ export class AuthController extends Controller {
 
     await prisma.users.update({
       where: { email },
-      data: { password_hash: newPassword },
+      data: { password_hash: newPassword, email_verified: true },
     });
 
     return toResponse({
@@ -222,8 +238,16 @@ export class AuthController extends Controller {
   @Post("/resendVerification")
   @Middlewares(validateData(authValidations.forgotPass))
   public async resendVerification(
-    @Body() body: AuthResendVerification
+    @Request() req: ExReq,
+    @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
+    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({
+        error: "Hcaptch verification failed",
+      });
+    }
+
     const user = await userService.fetchByEmail(body.email);
     if (!user) {
       this.setStatus(statusConst.notFound.code);
