@@ -19,6 +19,8 @@ function getMigrationStatus() {
     return;
   }
 
+  execSync("npm install -g @xata.io/cli@latest");
+
   const status = getMigrationStatus();
   console.log("status: ", status);
 

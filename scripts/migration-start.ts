@@ -58,6 +58,8 @@ async function getMigrationDiff() {
 
   console.log(`migration started from ${base} to ${target}`);
 
+  execSync("npm install -g @xata.io/cli@latest");
+
   execSync(`xata pull ${base}`);
   execSync(`mv .xata/migrations .xata/migrations-${base}`);
 
