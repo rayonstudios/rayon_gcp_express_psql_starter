@@ -21,9 +21,11 @@ import fileService from "./file.service";
 export class FileController extends Controller {
   @Post("/")
   public async create(
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: ExReq
   ): Promise<APIResponse<{ url: string }>> {
-    const [url] = await fileService.save([{ ...file, createdBy: "" }]);
+    const reqUser = getReqUser(req);
+    const [url] = await fileService.save([{ ...file, createdBy: reqUser.id }]);
 
     this.setStatus(statusConst.created.code);
     return toResponse({

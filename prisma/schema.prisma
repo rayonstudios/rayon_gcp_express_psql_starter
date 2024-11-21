@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["relationJoins"]
 }
 
@@ -11,40 +11,40 @@ datasource db {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model otps {
-  id String   @unique(map: "_pgroll_new_otps_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  id         String   @unique(map: "_pgroll_new_otps_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
   created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
-  otp String
-  email String
+  otp        String
+  email      String
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model posts {
-  title String
-  labels String[]
-  slug String
-  text String
-  author_id String
-  id String   @unique(map: "_pgroll_new_posts_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  title      String
+  labels     String[]
+  slug       String
+  text       String
+  author_id  String
+  id         String   @unique(map: "_pgroll_new_posts_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
   created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
-  views Int      @default(0)
-  author users    @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users")
+  views      Int      @default(0)
+  author     users    @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
-  name String
-  bio String
-  created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
-  id String   @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  name                  String
+  bio                   String
+  created_at            DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  id                    String   @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
   refresh_token_version Int      @default(0)
-  role String   @default("user")
-  email_verified Boolean  @default(false)
-  password_hash String
-  email String   @unique(map: "users_email_unique")
-  photo String?
-  posts posts[]
+  role                  String   @default("user")
+  email_verified        Boolean  @default(false)
+  password_hash         String
+  email                 String   @unique(map: "users_email_unique")
+  photo                 String?
+  posts                 posts[]
 }
