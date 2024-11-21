@@ -119,7 +119,7 @@ export class AuthController extends Controller {
   @Middlewares(validateData(authValidations.resetPass.omit({ password: true })))
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
-  ): Promise<APIResponse<Message>> {
+  ): Promise<APIResponse<AuthLoginResponse>> {
     const { email, otp } = body;
     const verified = await otpService.verify({ email, otp });
     if (!verified) {
@@ -127,12 +127,20 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
-    await prisma.users.update({
+    const user = await prisma.users.update({
       where: { email },
       data: { email_verified: true },
     });
 
-    return toResponse({ data: { message: "Email successfully verified!" } });
+    const tokens = await authSerivce.generateTokens(user);
+    if (!tokens) {
+      this.setStatus(statusConst.internal.code);
+      return toResponse({ error: statusConst.internal.message });
+    }
+
+    return toResponse({
+      data: authSerializer.login(tokens, user),
+    });
   }
 
   @Post("/signoutAll")
