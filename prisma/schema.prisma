@@ -46,5 +46,6 @@ model users {
   password_hash         String
   email                 String   @unique(map: "users_email_unique")
   photo                 String?
+  fcm_tokens            String[]
   posts                 posts[]
 }
