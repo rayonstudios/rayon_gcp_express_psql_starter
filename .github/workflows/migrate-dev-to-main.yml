@@ -19,14 +19,12 @@ jobs:
           INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
+      - name: Install Xata CLI
+        run: |
+          npm install -g @xata.io/cli@latest
+
       - name: Start Xata Migration from dev to main
         run: |
-          npx tsx ./scripts/migration-start dev main
+          npx tsx ./scripts/xata-migration dev main
         env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"
-
-      - name: Complete Xata Migration from dev to main
-        run: |
-          npx tsx ./scripts/migration-complete dev main
-        env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"
+          FORCE: true
