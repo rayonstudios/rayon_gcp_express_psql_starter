@@ -1,15 +1,7 @@
 import { prisma } from "#/src/lib/utils/prisma";
+import { ProfileUpdate } from "./profile.types";
 
-const update = async (
-  id: string,
-  data: {
-    name?: string;
-    bio?: string;
-    photo?: string;
-    added_fcm_token?: string;
-    removed_fcm_token?: string;
-  }
-) => {
+const update = async (id: string, data: ProfileUpdate) => {
   const user = await prisma.users.findUnique({
     where: { id },
     select: { fcm_tokens: true },
@@ -32,7 +24,7 @@ const update = async (
       name: data.name,
       bio: data.bio,
       photo: data.photo,
-      fcm_tokens: updatedTokens.length > 0 ? { set: updatedTokens } : undefined,
+      fcm_tokens: updatedTokens,
     },
   });
 };
