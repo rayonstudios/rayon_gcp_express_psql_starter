@@ -31,4 +31,11 @@ export const expressAuthentication = async (
     req._user = user;
     return user;
   }
+
+  if (securityName === "api_key") {
+    const { apiKey } = req.query;
+
+    if (apiKey === process.env.API_KEY_SECRET) return true;
+    else return Promise.reject({ code: statusConst.unAuthorized.code });
+  }
 };

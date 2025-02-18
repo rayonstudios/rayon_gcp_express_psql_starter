@@ -20,6 +20,8 @@ export interface UserFetchList extends PaginationParams {
   search?: string;
 }
 
-export type UserCreate = Expand<Optional<UserMutable, "bio">>;
+export type UserCreate = Expand<
+  Optional<UserMutable, "bio" | "fcm_tokens" | "read_count">
+>;
 
 export type UserUpdate = Partial<Omit<UserMutable, "email">>;

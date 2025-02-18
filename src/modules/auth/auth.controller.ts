@@ -18,6 +18,8 @@ import {
   UploadedFile,
 } from "tsoa";
 import fileService from "../file/file.service";
+import NotificationService from "../notification/notification.service";
+import { NotificationEvent } from "../notification/notification.types";
 import otpService from "../otp/otp.service";
 import userSerializer from "../user/user.serializer";
 import { SanitizedUser } from "../user/user.types";
@@ -109,6 +111,14 @@ export class AuthController extends Controller {
       role: Role.USER,
     });
     await otpService.send(user, "verifyEmail");
+
+    await NotificationService.trigger({
+      type: NotificationEvent.SIGN_UP,
+      data: {
+        name: user.name,
+        email: user.email,
+      },
+    });
 
     return toResponse({
       data: userSerializer.single(user),
