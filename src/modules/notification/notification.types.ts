@@ -1,5 +1,6 @@
 import { PrismaEntityMutable } from "#/src/lib/types/misc";
 import { Expand } from "#/src/lib/types/utils";
+import { PaginationParams } from "#/src/lib/utils/pagination";
 import { Prisma } from "@prisma/client";
 
 export type Notification = Prisma.notificationsCreateManyInput;
@@ -52,4 +53,8 @@ export type NotificationPayload = {
 export enum NotificationUser {
   ADMINS = "admins",
   ALL = "all",
+}
+
+export interface NotificationFetchList extends PaginationParams {
+  userId: string;
 }

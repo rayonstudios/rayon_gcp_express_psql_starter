@@ -1,21 +1,30 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
+import { PaginationResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
 import { statusConst } from "#/src/lib/utils/status";
 import { validateData } from "#/src/middlewares/validation.middleware";
 import {
   Body,
   Controller,
+  Get,
   Middlewares,
   Post,
+  Queries,
   Request,
   Route,
   Security,
   Tags,
 } from "tsoa";
 import { getRecepientsUids } from "./notification.helper";
+import NotificationSerializer from "./notification.serializer";
 import NotificationService from "./notification.service";
-import { NotificationBody, NotificationEvent } from "./notification.types";
+import {
+  Notification,
+  NotificationBody,
+  NotificationEvent,
+  NotificationFetchList,
+} from "./notification.types";
 import NotificationValidations from "./notification.validations";
 
 @Route("notifications")
@@ -54,5 +63,14 @@ export class NotificationController extends Controller {
       },
     });
     return toResponse({ data: { message: "Notification sent successfully" } });
+  }
+
+  @Get("/")
+  @Security("jwt", [Role.ADMIN])
+  public async fetchList(
+    @Queries() query: NotificationFetchList
+  ): Promise<APIResponse<PaginationResponse<Notification>>> {
+    const res = await NotificationService.fetchList(query);
+    return toResponse({ data: NotificationSerializer.paginated(res) });
   }
 }

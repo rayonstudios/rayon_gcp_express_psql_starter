@@ -1,9 +1,15 @@
 import { BE_URL } from "#/src/lib/constants";
 import CloudTask from "#/src/lib/utils/cloudTasks";
+import { paginatedQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { PubSub } from "@google-cloud/pubsub";
 import { sendNotification } from "./notification.helper";
-import { NotificationEvent, NotificationPayload } from "./notification.types";
+import {
+  Notification,
+  NotificationEvent,
+  NotificationFetchList,
+  NotificationPayload,
+} from "./notification.types";
 
 const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
   try {
@@ -90,9 +96,30 @@ const send = async (payload: NotificationPayload) => {
   }
 };
 
+const fetchList = async (filters?: NotificationFetchList) => {
+  let query: Parameters<typeof prisma.notifications.findMany>[0] = {
+    orderBy: { created_at: "desc" },
+  };
+
+  if (filters?.userId) query.where = { users: { has: filters.userId } };
+
+  const res = await paginatedQuery<Notification>(
+    "notifications",
+    query,
+    filters
+  );
+
+  await prisma.users.update({
+    where: { id: filters?.userId },
+    data: { read_count: { set: 0 } },
+  });
+  return res;
+};
+
 const NotificationService = {
   trigger,
   send,
+  fetchList,
 };
 
 export default NotificationService;
