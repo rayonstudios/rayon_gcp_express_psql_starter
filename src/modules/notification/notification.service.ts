@@ -58,7 +58,7 @@ const send = async (payload: NotificationPayload) => {
 
         await sendNotification(uids, {
           title: "New user onboarded",
-          body: `A new user has registered with name ${data.name} and email ${data.email}. Please review their details.`,
+          body: `A new user has been registered with name "${data.name}" and email "${data.email}".`,
           data: payload,
         });
       }
