@@ -36,7 +36,6 @@ model posts {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
   name                  String
-  bio                   String
   created_at            DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at            DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
   id                    String   @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
@@ -46,5 +45,7 @@ model users {
   password_hash         String
   email                 String   @unique(map: "users_email_unique")
   photo                 String?
+  fcm_tokens            String[]
+  bio                   String?
   posts                 posts[]
 }
