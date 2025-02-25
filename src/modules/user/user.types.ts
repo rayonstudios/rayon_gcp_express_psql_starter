@@ -11,7 +11,7 @@ export type SanitizedUser = Omit<
   "password_hash" | "refresh_token_version"
 >;
 
-type UserMutable = Omit<
+export type UserMutable = Omit<
   PrismaEntityMutable<User>,
   "refresh_token_version" | "email_verified" | "password_hash"
 >;
