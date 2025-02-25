@@ -12,21 +12,19 @@ jobs:
 
       - name: Load Secrets in Env
         run: |
-          npx tsx ./scripts/load-secrets
+          npx tsx ./scripts/load-secrets-ci
         env:
           NODE_ENV: dev
           INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
-      - name: Start Xata Migration from dev to main
+      - name: Install Xata CLI
         run: |
-          npx tsx ./scripts/migration-start dev main
-        env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"
+          npm install -g @xata.io/cli@latest
 
-      - name: Complete Xata Migration from dev to main
+      - name: Migrate DB schema from dev to main
         run: |
-          npx tsx ./scripts/migration-complete dev main
+          npx tsx ./scripts/xata-migration dev main
         env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"
+          FORCE: true

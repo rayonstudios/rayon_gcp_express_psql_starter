@@ -47,5 +47,20 @@ model users {
   photo                 String?
   fcm_tokens            String[]
   bio                   String?
+  read_count            Int?     @default(0)
   posts                 posts[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model notifications {
+  id         String   @unique(map: "_pgroll_new_notifications_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  title      String
+  message    String
+  url        String?
+  users      String[]
+  link       String?
+  metadata   Json?    @db.Json
+  eventType  String
 }

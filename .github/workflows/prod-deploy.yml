@@ -15,7 +15,7 @@ jobs:
 
       - name: Load Secrets in Env
         run: |
-          npx tsx ./scripts/load-secrets
+          npx tsx ./scripts/load-secrets-ci
         env:
           NODE_ENV: production
           INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
@@ -28,16 +28,21 @@ jobs:
         env:
           NODE_ENV: production
 
-      - name: Start Xata Migration from dev to main
+      - name: Install Xata CLI
         run: |
-          npx tsx ./scripts/migration-start dev main
+          npm install -g @xata.io/cli@latest
+
+      # Runs only if a PR merge from dev to main is detected through the commit message
+      - name: Migrate DB schema from dev to main
+        run: |
+          npx tsx ./scripts/xata-migration dev main
         env:
           COMMIT_MSG: "${{ github.event.head_commit.message }}"
 
       - id: "auth"
         uses: "google-github-actions/auth@v2"
         with:
-          credentials_json: "${{ secrets.GCP_SA_PROD }}"
+          credentials_json: "${{ secrets.SECRETJSON_PROD }}"
 
       - name: Set up Cloud SDK
         uses: "google-github-actions/setup-gcloud@v2"
@@ -45,9 +50,3 @@ jobs:
       - name: Deploy to Google App Engine
         run: |
           gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
-
-      - name: Complete Xata Migration from dev to main
-        run: |
-          npx tsx ./scripts/migration-complete dev main
-        env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"

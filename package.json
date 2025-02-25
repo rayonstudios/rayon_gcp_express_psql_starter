@@ -5,7 +5,7 @@
   "scripts": {
     "tsoa": "tsoa spec-and-routes",
     "setup": "npm run env:fetch && npm run prisma:pull && npm run schema-transform && npm run prisma:format && npm run prisma:generate && npm run tsoa",
-    "build": "npm run setup && tsc && node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/scripts/secrets.js",
+    "build": "npm run setup && tsc && node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/scripts/load-secrets.js",
     "local": "npm run setup && concurrently \"nodemon server.ts\" \"nodemon -x tsoa spec-and-routes\"",
     "dev": "cross-env NODE_ENV=dev npm run local",
     "prod": "cross-env NODE_ENV=production npm run local",
@@ -13,7 +13,7 @@
     "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/server.js",
     "deploy": "npm run build && gcloud app deploy",
     "watch:types": "tsc -w",
-    "env:fetch": "ts-node ./scripts/secrets",
+    "env:fetch": "ts-node ./scripts/load-secrets",
     "env:replace": "ts-node ./scripts/env-replace",
     "schema-transform": "ts-node ./scripts/schema-transform",
     "prisma:pull": "prisma db pull",
@@ -40,7 +40,6 @@
   "dependencies": {
     "@prisma/client": "5.20.0",
     "@sendinblue/client": "^3.3.1",
-    "@types/lodash": "^4.17.10",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
@@ -65,6 +64,7 @@
     "@types/cors": "^2",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9",
+    "@types/lodash": "^4.17.15",
     "@types/morgan": "^1",
     "@types/node": "^22.7.5",
     "@types/swagger-ui-express": "^4.1.6",
