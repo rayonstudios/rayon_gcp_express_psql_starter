@@ -1,6 +1,6 @@
 const infisicalBaseUrl = "https://app.infisical.com/api";
 
-export async function getInfisicalToken() {
+async function getInfisicalToken() {
   const { accessToken } = await fetch(
     `${infisicalBaseUrl}/v1/auth/universal-auth/login`,
     {
@@ -16,25 +16,6 @@ export async function getInfisicalToken() {
   ).then((res) => res.json());
 
   return accessToken;
-}
-
-export async function fetchSecret(key: string, env: string) {
-  const accessToken = await getInfisicalToken();
-
-  const {
-    secret: { secretValue },
-  } = await fetch(
-    `${infisicalBaseUrl}/v3/secrets/raw/${key}?workspaceId=${
-      process.env.INFISICAL_PROJECT_ID
-    }&environment=${env}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  ).then((res) => res.json());
-
-  return secretValue;
 }
 
 export async function fetchSecrets(env: string) {
@@ -66,25 +47,6 @@ export function importSecrets() {
   };
 }
 
-export async function updateSecret(key: string, value: string, env: string) {
-  const accessToken = await getInfisicalToken();
-
-  await fetch(`${infisicalBaseUrl}/v3/secrets/raw/${key}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      secretValue: value,
-      environment: env === "dev" ? "dev" : "production",
-      workspaceId: process.env.INFISICAL_PROJECT_ID,
-    }),
-  })
-    .then((res) => res.json())
-    .catch(console.log);
-}
-
 export function isAppEngine() {
   return process.env.GAE_ENV === "standard";
 }
@@ -94,20 +56,6 @@ export function isPRMerged(commitMsg: string, fromBranch: string) {
     String.raw`^Merge pull request #\d+ from .*\/${fromBranch}\b`,
     "gm"
   ).test(commitMsg);
-}
-
-export function shortPoll(fn: () => any, interval: number) {
-  return new Promise<boolean>(async (resolve) => {
-    while (true) {
-      const result = await fn();
-      if (typeof result === "boolean") {
-        resolve(result);
-        break;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-  });
 }
 
 export const getBEUrl = (env: string) =>
