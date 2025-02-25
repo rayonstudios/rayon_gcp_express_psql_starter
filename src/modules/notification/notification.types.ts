@@ -11,7 +11,7 @@ export type NotificationCreate = NotificationMutable;
 
 export type NotificationBody = Expand<
   Omit<NotificationCreate, "eventType" | "users" | "metadata"> & {
-    users: string;
+    users: NotificationUser;
   }
 >;
 
@@ -53,6 +53,7 @@ export type NotificationPayload = {
 export enum NotificationUser {
   ADMINS = "admins",
   ALL = "all",
+  USER = "user",
 }
 
 export interface NotificationFetchList extends PaginationParams {

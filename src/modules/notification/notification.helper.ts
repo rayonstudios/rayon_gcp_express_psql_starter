@@ -25,6 +25,17 @@ export const getRecepientsUids = async (
       uids = admins.map((admin) => admin.id);
       break;
     }
+
+    case NotificationUser.USER: {
+      const users = await prisma.users.findMany({
+        where: {
+          role: "user",
+        },
+      });
+
+      uids = users.map((user) => user.id);
+      break;
+    }
   }
   return uids as string[];
 };
@@ -130,6 +141,6 @@ export const sendNotification = async (
     where: {
       id: { in: uids },
     },
-    data: { read_count: { increment: 1 } },
+    data: { unread_noti_count: { increment: 1 } },
   });
 };

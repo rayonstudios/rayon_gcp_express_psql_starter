@@ -47,7 +47,7 @@ model users {
   photo                 String?
   fcm_tokens            String[]
   bio                   String?
-  read_count            Int?     @default(0)
+  unread_noti_count     Int?     @default(0)
   posts                 posts[]
 }
 

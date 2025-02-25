@@ -1,5 +1,5 @@
-import { v2, protos } from "@google-cloud/tasks";
-import { GenericObject } from "../types/utils";
+import { GenericObject } from "#/src/lib/types/utils";
+import { protos, v2 } from "@google-cloud/tasks";
 
 const { CloudTasksClient } = v2;
 
@@ -47,9 +47,9 @@ const add = async ({ queuePath, runsAt, ...taskParams }: Params) => {
 const remove = (taskId: string) =>
   new CloudTasksClient().deleteTask({ name: taskId }, { maxRetries: 3 });
 
-const CloudTask = {
+const cloudTaskService = {
   add,
   remove,
 };
 
-export default CloudTask;
+export default cloudTaskService;

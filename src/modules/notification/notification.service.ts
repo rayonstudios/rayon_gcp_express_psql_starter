@@ -1,8 +1,8 @@
 import { BE_URL } from "#/src/lib/constants";
-import CloudTask from "#/src/lib/utils/cloudTasks";
 import { paginatedQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { PubSub } from "@google-cloud/pubsub";
+import cloudTaskService from "../cloud-task/cloud-task.service";
 import { sendNotification } from "./notification.helper";
 import {
   Notification,
@@ -14,7 +14,7 @@ import {
 const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
   try {
     if (data.timestamp) {
-      await CloudTask.add({
+      await cloudTaskService.add({
         queuePath: process.env.NOTIFICATIONS_QUEUE_PATH!,
         runsAt: data.timestamp,
         url: `${BE_URL}/notifications?api_key=${process.env.API_KEY_SECRET}`,
@@ -58,7 +58,7 @@ const send = async (payload: NotificationPayload) => {
 
         await sendNotification(uids, {
           title: "New user onboarded",
-          body: `A new user has registered with name ${data.name} and email ${data.email}. Please review their details.`,
+          body: `A new user has been registered with name "${data.name}" and email "${data.email}"`,
           data: payload,
         });
       }
@@ -97,7 +97,7 @@ const send = async (payload: NotificationPayload) => {
 };
 
 const fetchList = async (filters?: NotificationFetchList) => {
-  let query: Parameters<typeof prisma.notifications.findMany>[0] = {
+  const query: Parameters<typeof prisma.notifications.findMany>[0] = {
     orderBy: { created_at: "desc" },
   };
 
@@ -111,15 +111,15 @@ const fetchList = async (filters?: NotificationFetchList) => {
 
   await prisma.users.update({
     where: { id: filters?.userId },
-    data: { read_count: { set: 0 } },
+    data: { unread_noti_count: { set: 0 } },
   });
   return res;
 };
 
-const NotificationService = {
+const notificationService = {
   trigger,
   send,
   fetchList,
 };
 
-export default NotificationService;
+export default notificationService;

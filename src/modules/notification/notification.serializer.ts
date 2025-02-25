@@ -5,8 +5,8 @@ const { paginated } = getSerializers(
   (notification: Notification) => notification
 );
 
-const NotificationSerializer = {
+const notificationSerializer = {
   paginated,
 };
 
-export default NotificationSerializer;
+export default notificationSerializer;

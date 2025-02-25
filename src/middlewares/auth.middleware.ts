@@ -9,11 +9,12 @@ export const expressAuthentication = async (
   securityName: string,
   scopes?: string[]
 ) => {
+  const sendUnAuthResponse = () =>
+    Promise.reject({ code: statusConst.unAuthenticated.code });
+
   if (securityName === "jwt") {
     const token = req.headers.authorization?.split(" ")[1];
     const type = req.originalUrl.endsWith("/refresh") ? "refresh" : "access";
-    const sendUnAuthResponse = () =>
-      Promise.reject({ code: statusConst.unAuthenticated.code });
 
     if (!token) return sendUnAuthResponse();
 
@@ -36,6 +37,6 @@ export const expressAuthentication = async (
     const { apiKey } = req.query;
 
     if (apiKey === process.env.API_KEY_SECRET) return true;
-    else return Promise.reject({ code: statusConst.unAuthorized.code });
+    else return sendUnAuthResponse();
   }
 };
