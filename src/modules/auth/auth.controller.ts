@@ -107,6 +107,8 @@ export class AuthController extends Controller {
       bio,
       photo: photoUrl,
       role: Role.USER,
+      fcm_tokens: [],
+      read_count: 0,
     });
     await otpService.send(user, "verifyEmail");
 

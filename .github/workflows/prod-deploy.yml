@@ -15,7 +15,7 @@ jobs:
 
       - name: Load Secrets in Env
         run: |
-          npx tsx ./scripts/load-secrets
+          npx tsx ./scripts/load-secrets-ci
         env:
           NODE_ENV: production
           INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
@@ -32,7 +32,8 @@ jobs:
         run: |
           npm install -g @xata.io/cli@latest
 
-      - name: Start Xata Migration from dev to main
+      # Runs only if a PR merge from dev to main is detected through the commit message
+      - name: Migrate DB schema from dev to main
         run: |
           npx tsx ./scripts/xata-migration dev main
         env:
