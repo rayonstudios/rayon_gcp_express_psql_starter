@@ -11,7 +11,7 @@ type Params = HttpRequest & {
   body?: GenericObject;
 };
 
-const add = async ({ queuePath, runsAt, ...taskParams }: Params) => {
+const add = async ({ queuePath, runsAt, body, ...taskParams }: Params) => {
   const client = new CloudTasksClient();
 
   const task: GenericObject = {
@@ -21,10 +21,10 @@ const add = async ({ queuePath, runsAt, ...taskParams }: Params) => {
     },
   };
 
-  if (typeof taskParams.body === "object") {
+  if (typeof body === "object") {
     task.httpRequest.body = Buffer.from(
       JSON.stringify({
-        ...taskParams.body,
+        ...body,
         taskMetadata: {
           scheduledAt: runsAt,
           createdAt: Date.now(),

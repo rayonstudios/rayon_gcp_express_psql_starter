@@ -1,19 +1,29 @@
 import { PrismaEntityMutable } from "#/src/lib/types/misc";
 import { Expand } from "#/src/lib/types/utils";
 import { PaginationParams } from "#/src/lib/utils/pagination";
+import { Role } from "#/src/lib/utils/roles";
 import { Prisma } from "@prisma/client";
 
 export type Notification = Prisma.notificationsCreateManyInput;
 
 type NotificationMutable = PrismaEntityMutable<Notification>;
 
-export type NotificationCreate = NotificationMutable;
-
-export type NotificationBody = Expand<
-  Omit<NotificationCreate, "eventType" | "users" | "metadata"> & {
-    users: NotificationUser;
+// endpoint request types
+export type NotificationSendGeneral = Expand<
+  Omit<NotificationMutable, "event"> & {
+    roles?: Role[];
+    userIds?: string[];
   }
 >;
+
+export type UserNotificationUnlinked = Prisma.userNotificationsCreateManyInput;
+export type UserNotification = Expand<
+  UserNotificationUnlinked & {
+    notification: Notification;
+  }
+>;
+
+export interface NotificationFetchList extends PaginationParams {}
 
 export enum NotificationEvent {
   GENERAL = "general",
@@ -25,37 +35,21 @@ export type NotificationPayload = {
   timestamp?: number;
 } & (
   | {
-      type: NotificationEvent.GENERAL;
-      data: {
-        uids?: string[];
-        title: string;
-        message: string;
-        url?: string;
-        link?: string;
-      };
+      event: NotificationEvent.GENERAL;
+      data: NotificationSendGeneral;
     }
   | {
-      type: NotificationEvent.SIGN_UP;
+      event: NotificationEvent.SIGN_UP;
       data: {
         name: string;
         email: string;
       };
     }
   | {
-      type: NotificationEvent.NEW_POST;
+      event: NotificationEvent.NEW_POST;
       data: {
         author: string;
         title: string;
       };
     }
 );
-
-export enum NotificationUser {
-  ADMINS = "admins",
-  ALL = "all",
-  USER = "user",
-}
-
-export interface NotificationFetchList extends PaginationParams {
-  userId: string;
-}

@@ -15,12 +15,13 @@ export type PaginationResponse<T> = {
 export const paginatedQuery = async <T>(
   model: Prisma.ModelName,
   query: any,
-  filters: any
+  paginationParams?: PaginationParams
 ): Promise<PaginationResponse<T>> => {
   const findQuery = cloneDeep(query);
-  if (filters?.limit) {
-    findQuery.take = filters.limit;
-    findQuery.skip = filters.limit * ((filters.page || 1) - 1);
+  if (paginationParams?.limit) {
+    findQuery.take = paginationParams.limit;
+    findQuery.skip =
+      paginationParams.limit * ((paginationParams.page || 1) - 1);
   }
 
   const [list, total] = await prisma.$transaction([

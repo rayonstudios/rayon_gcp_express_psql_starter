@@ -1,3 +1,4 @@
+import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
@@ -20,7 +21,6 @@ import {
   Tags,
 } from "tsoa";
 import { getReqUser } from "../auth/auth.helpers";
-import otpService from "../otp/otp.service";
 import userSerializer from "./user.serializer";
 import userService from "./user.service";
 import {

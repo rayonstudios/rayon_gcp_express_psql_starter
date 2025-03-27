@@ -1,14 +1,16 @@
+import cloudTaskService from "#/src/lib/cloud-task/cloud-task.service";
 import { BE_URL } from "#/src/lib/constants";
+import { GenericObject } from "#/src/lib/types/utils";
 import { paginatedQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { PubSub } from "@google-cloud/pubsub";
-import cloudTaskService from "../cloud-task/cloud-task.service";
-import { sendNotification } from "./notification.helper";
+import { pick } from "lodash";
+import { getRecepientsIds, sendNotification } from "./notification.helper";
 import {
-  Notification,
   NotificationEvent,
   NotificationFetchList,
   NotificationPayload,
+  UserNotification,
 } from "./notification.types";
 
 const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
@@ -17,7 +19,7 @@ const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
       await cloudTaskService.add({
         queuePath: process.env.NOTIFICATIONS_QUEUE_PATH!,
         runsAt: data.timestamp,
-        url: `${BE_URL}/notifications?api_key=${process.env.API_KEY_SECRET}`,
+        url: `${BE_URL}/notifications/trigger?api_key=${process.env.API_KEY_SECRET}`,
         httpMethod: "POST",
         body: {
           message: {
@@ -40,9 +42,9 @@ const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
 };
 
 const send = async (payload: NotificationPayload) => {
-  const { type, data } = payload;
+  const { event, data } = payload;
 
-  switch (type) {
+  switch (event) {
     case NotificationEvent.SIGN_UP:
       {
         if (!data) return;
@@ -54,12 +56,13 @@ const send = async (payload: NotificationPayload) => {
             },
           },
         });
-        const uids = admins.map((admin) => admin.id);
+        const userIds = admins.map((admin) => admin.id);
 
-        await sendNotification(uids, {
+        await sendNotification(userIds, {
           title: "New user onboarded",
           body: `A new user has been registered with name "${data.name}" and email "${data.email}"`,
-          data: payload,
+          event,
+          data,
         });
       }
       break;
@@ -69,57 +72,65 @@ const send = async (payload: NotificationPayload) => {
         if (!data) return;
 
         const users = await prisma.users.findMany();
-        const uids = users.map((user) => user.id);
+        const userIds = users.map((user) => user.id);
 
-        await sendNotification(uids, {
+        await sendNotification(userIds, {
           title: `New Post Ready for Review`,
           body: `A new post on ${data.title} has been created by ${data.author}. Please review the content and take any necessary actions.`,
-          data: payload,
+          event,
+          data,
         });
       }
       break;
 
     case NotificationEvent.GENERAL:
-      const { uids, ...updatedData } = data;
-
-      if (!uids) return;
+      const userIds = await getRecepientsIds(data);
 
       {
-        await sendNotification(uids, {
+        await sendNotification(userIds, {
           title: data.title,
-          body: data.message,
-          image: data.url,
-          data: { ...payload, data: updatedData },
+          body: data.body,
+          image: data.image,
+          link: data.link,
+          event,
+          data: (data.metadata ?? {}) as GenericObject,
         });
       }
       break;
   }
 };
 
-const fetchList = async (filters?: NotificationFetchList) => {
-  const query: Parameters<typeof prisma.notifications.findMany>[0] = {
+const fetchList = async (
+  filters: NotificationFetchList & { userId: string }
+) => {
+  const query: Parameters<typeof prisma.userNotifications.findMany>[0] = {
     orderBy: { created_at: "desc" },
+    where: { user_id: filters.userId },
+    include: {
+      notification: true,
+    },
   };
 
-  if (filters?.userId) query.where = { users: { has: filters.userId } };
-
-  const res = await paginatedQuery<Notification>(
-    "notifications",
+  const res = await paginatedQuery<UserNotification>(
+    "userNotifications",
     query,
-    filters
+    pick(filters, ["limit", "page"])
   );
-
-  await prisma.users.update({
-    where: { id: filters?.userId },
-    data: { unread_noti_count: { set: 0 } },
-  });
   return res;
+};
+
+const markRead = async (userId: string) => {
+  await prisma.users.update({
+    where: { id: userId },
+    data: { unread_noti_count: 0 },
+  });
 };
 
 const notificationService = {
   trigger,
   send,
   fetchList,
+  markRead,
 };
 
 export default notificationService;

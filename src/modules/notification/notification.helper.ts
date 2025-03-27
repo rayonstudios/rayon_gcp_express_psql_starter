@@ -1,48 +1,41 @@
 import { THEME_COLOR } from "#/src/lib/constants";
+import { GenericObject } from "#/src/lib/types/utils";
 import { prisma } from "#/src/lib/utils/prisma";
+import { Role } from "#/src/lib/utils/roles";
 import { messaging } from "firebase-admin";
 import { MulticastMessage } from "firebase-admin/lib/messaging/messaging-api";
+import { uniq } from "lodash";
 import {
-  NotificationBody,
+  Notification,
   NotificationEvent,
-  NotificationPayload,
-  NotificationUser,
+  NotificationSendGeneral,
 } from "./notification.types";
 
-export const getRecepientsUids = async (
-  data: NotificationBody
+export const getRecepientsIds = async (
+  data: NotificationSendGeneral
 ): Promise<string[]> => {
-  let uids;
-  switch (data.users) {
-    case NotificationUser.ADMINS: {
-      const admins = await prisma.users.findMany({
-        where: {
-          role: {
-            in: ["admin", "super-admin"],
-          },
-        },
-      });
-      uids = admins.map((admin) => admin.id);
-      break;
-    }
+  const ids = data.userIds ?? [];
+  const roles = uniq(data.roles ?? []);
+  if (roles.includes(Role.ADMIN) && !roles.includes(Role.SUPER_ADMIN))
+    roles.push(Role.SUPER_ADMIN);
 
-    case NotificationUser.USER: {
-      const users = await prisma.users.findMany({
-        where: {
-          role: "user",
-        },
-      });
+  const users = await prisma.users.findMany({
+    where: {
+      role: {
+        in: roles,
+      },
+    },
+    select: { id: true },
+  });
+  ids.push(...users.map((user) => user.id));
 
-      uids = users.map((user) => user.id);
-      break;
-    }
-  }
-  return uids as string[];
+  return uniq(ids);
 };
 
 export const sendNotification = async (
-  uids: string[],
+  userIds: string[],
   {
+    event,
     title,
     body,
     image,
@@ -50,27 +43,27 @@ export const sendNotification = async (
     data,
     groupId,
   }: {
-    title: string;
-    body: string;
-    image?: string;
-    link?: string;
-    data?: NotificationPayload;
+    data?: GenericObject;
     groupId?: string;
-  }
+    event: NotificationEvent;
+  } & Pick<Notification, "title" | "body" | "image" | "link">
 ) => {
   const tokens: string[] = (
     await Promise.all(
-      uids.map(async (uid) => {
+      userIds.map(async (id) => {
         try {
           const user = await prisma.users.findUnique({
             where: {
-              id: uid,
+              id,
             },
             select: { fcm_tokens: true },
           });
           return user?.fcm_tokens || [];
         } catch (error) {
-          console.error(`Error fetching user with ID ${uid}:`, error);
+          console.error(
+            `sendNotification, error fetching user with ID ${id}:`,
+            error
+          );
           return [];
         }
       })
@@ -107,7 +100,7 @@ export const sendNotification = async (
       },
       fcmOptions: {},
     },
-    data: data?.data || ({} as any),
+    data: data || {},
   };
 
   if (link) {
@@ -120,26 +113,36 @@ export const sendNotification = async (
     config.webpush!.notification!.image = image;
   }
 
-  await Promise.all([
-    messaging()
-      .sendEachForMulticast(config)
-      .catch(() => console.log("Error in sendEachForMulticast")),
+  const [res] = await Promise.all([
+    // Create notification in DB
     prisma.notifications.create({
       data: {
         title,
-        message: body,
-        url: image,
+        body,
+        image,
         link,
-        metadata: data?.data || {},
-        eventType: data?.type || NotificationEvent.GENERAL,
-        users: uids,
+        metadata: data || {},
+        event: event,
       },
     }),
+    // Send push notification
+    messaging()
+      .sendEachForMulticast(config)
+      .catch(() => console.log("Error in sendEachForMulticast")),
   ]);
 
+  // Create user notifications to be used to fetch later
+  await prisma.userNotifications.createMany({
+    data: userIds.map((id) => ({
+      notification_id: res.id,
+      user_id: id,
+    })),
+  });
+
+  // Increment unread notification count for each user
   await prisma.users.updateMany({
     where: {
-      id: { in: uids },
+      id: { in: userIds },
     },
     data: { unread_noti_count: { increment: 1 } },
   });

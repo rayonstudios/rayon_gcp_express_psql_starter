@@ -4,7 +4,7 @@ import { PaginationParams } from "#/src/lib/utils/pagination";
 import { Prisma } from "@prisma/client";
 import { Optional } from "@prisma/client/runtime/library";
 
-export type User = Prisma.usersCreateWithoutPostsInput;
+export type User = Prisma.usersCreateManyInput;
 
 export type SanitizedUser = Omit<
   User,
@@ -16,6 +16,7 @@ export type UserMutable = Omit<
   "refresh_token_version" | "email_verified" | "password_hash"
 >;
 
+// endpoint request types
 export interface UserFetchList extends PaginationParams {
   search?: string;
 }

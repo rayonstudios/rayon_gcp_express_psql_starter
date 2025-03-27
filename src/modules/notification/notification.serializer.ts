@@ -1,8 +1,8 @@
 import { getSerializers } from "#/src/lib/utils/serializer";
-import { Notification } from "./notification.types";
+import { UserNotification } from "./notification.types";
 
 const { paginated } = getSerializers(
-  (notification: Notification) => notification
+  (notification: UserNotification) => notification
 );
 
 const notificationSerializer = {

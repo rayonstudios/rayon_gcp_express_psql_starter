@@ -14,59 +14,67 @@ import {
   Security,
   Tags,
 } from "tsoa";
-import { getRecepientsUids } from "./notification.helper";
+import { getReqUser } from "../auth/auth.helpers";
 import notificationSerializer from "./notification.serializer";
 import notificationService from "./notification.service";
 import {
-  Notification,
-  NotificationBody,
   NotificationEvent,
   NotificationFetchList,
+  NotificationSendGeneral,
+  UserNotification,
 } from "./notification.types";
 
 @Route("notifications")
 @Tags("Notification")
 export class NotificationController extends Controller {
-  @Post("/")
+  @Post("/trigger")
   @Security("api_key")
-  public async send(@Request() req: ExReq) {
+  public async trigger(@Request() req: ExReq): Promise<APIResponse<Message>> {
     const json = JSON.parse(
       Buffer.from(req.body.message.data, "base64").toString("utf-8")
     );
 
     await notificationService.send(json);
-    return toResponse({ data: "Notification sent!" });
+    return toResponse({ data: { message: "Notification sent!" } });
   }
 
   @Post("/general")
   @Security("jwt", [Role.ADMIN])
-  public async general(
-    @Body() body: NotificationBody
+  public async sendGeneral(
+    @Body() body: NotificationSendGeneral
   ): Promise<APIResponse<Message>> {
-    const uids = await getRecepientsUids(body);
-    if (!uids) {
-      this.setStatus(statusConst.notFound.code);
-      return toResponse({ error: statusConst.notFound.message });
+    if (!body.userIds?.length || !body.roles?.length) {
+      this.setStatus(statusConst.invalidData.code);
+      return toResponse({
+        error: "At least one of userIds or roles is required",
+      });
     }
 
     await notificationService.trigger({
-      type: NotificationEvent.GENERAL,
-      data: {
-        uids,
-        ...body,
-        url: body.url ?? "",
-        link: body.link ?? "",
-      },
+      event: NotificationEvent.GENERAL,
+      data: body,
     });
-    return toResponse({ data: { message: "Notification sent successfully" } });
+    return toResponse({ data: { message: "Notification sent!" } });
   }
 
   @Get("/")
   @Security("jwt")
   public async fetchList(
+    @Request() req: ExReq,
     @Queries() query: NotificationFetchList
-  ): Promise<APIResponse<PaginationResponse<Notification>>> {
-    const res = await notificationService.fetchList(query);
+  ): Promise<APIResponse<PaginationResponse<UserNotification>>> {
+    const { id } = getReqUser(req);
+
+    const res = await notificationService.fetchList({ ...query, userId: id });
     return toResponse({ data: notificationSerializer.paginated(res) });
+  }
+
+  @Post("/mark-read")
+  @Security("jwt")
+  public async markRead(@Request() req: ExReq): Promise<APIResponse<Message>> {
+    const { id } = getReqUser(req);
+
+    await notificationService.markRead(id);
+    return toResponse({ data: { message: "Marked as read!" } });
   }
 }

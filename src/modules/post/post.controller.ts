@@ -17,7 +17,7 @@ import {
   Tags,
 } from "tsoa";
 import { getReqUser } from "../auth/auth.helpers";
-import NotificationService from "../notification/notification.service";
+import notificationService from "../notification/notification.service";
 import { NotificationEvent } from "../notification/notification.types";
 import { canMutatePost } from "./post.helpers";
 import postSerializer from "./post.serializer";
@@ -64,8 +64,8 @@ export class PostController extends Controller {
 
     const post = await postService.create({ ...body, author_id: reqUser.id });
 
-    await NotificationService.trigger({
-      type: NotificationEvent.NEW_POST,
+    await notificationService.trigger({
+      event: NotificationEvent.NEW_POST,
       data: {
         author: post.author.name,
         title: post.title,
