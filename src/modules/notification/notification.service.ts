@@ -3,7 +3,6 @@ import { BE_URL } from "#/src/lib/constants";
 import { GenericObject } from "#/src/lib/types/utils";
 import { paginatedQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
-import { PubSub } from "@google-cloud/pubsub";
 import { pick } from "lodash";
 import { getRecepientsIds, sendNotification } from "./notification.helper";
 import {
@@ -15,26 +14,14 @@ import {
 
 const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
   try {
-    if (data.timestamp) {
-      await cloudTaskService.add({
-        queuePath: process.env.NOTIFICATIONS_QUEUE_PATH!,
-        runsAt: data.timestamp,
-        url: `${BE_URL}/notifications/trigger?api_key=${process.env.API_KEY_SECRET}`,
-        httpMethod: "POST",
-        body: {
-          message: {
-            data: Buffer.from(JSON.stringify(data)).toString("base64"),
-          },
-        } as any,
-        headers: { "Content-Type": "application/json" },
-      });
-    } else {
-      await new PubSub({ projectId: process.env.GOOGLE_CLOUD_PROJECT })
-        .topic("notifications")
-        .publishMessage({
-          json: { ...data, ts: Date.now() },
-        });
-    }
+    await cloudTaskService.add({
+      queuePath: process.env.NOTIFICATIONS_QUEUE_PATH!,
+      runsAt: data.timestamp ?? new Date(),
+      url: `${BE_URL}/notifications/webhooks/handle-trigger?api_key=${process.env.API_KEY_SECRET}`,
+      httpMethod: "POST",
+      body: data as any,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error triggering notification", error);
     if (!ignoreErrors) throw error;

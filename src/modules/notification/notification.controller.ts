@@ -20,6 +20,7 @@ import notificationService from "./notification.service";
 import {
   NotificationEvent,
   NotificationFetchList,
+  NotificationPayload,
   NotificationSendGeneral,
   UserNotification,
 } from "./notification.types";
@@ -27,14 +28,12 @@ import {
 @Route("notifications")
 @Tags("Notification")
 export class NotificationController extends Controller {
-  @Post("/trigger")
+  @Post("/webhooks/handle-trigger")
   @Security("api_key")
-  public async trigger(@Request() req: ExReq): Promise<APIResponse<Message>> {
-    const json = JSON.parse(
-      Buffer.from(req.body.message.data, "base64").toString("utf-8")
-    );
-
-    await notificationService.send(json);
+  public async handleTrigger(
+    @Body() body: NotificationPayload
+  ): Promise<APIResponse<Message>> {
+    await notificationService.send(body);
     return toResponse({ data: { message: "Notification sent!" } });
   }
 
@@ -43,7 +42,7 @@ export class NotificationController extends Controller {
   public async sendGeneral(
     @Body() body: NotificationSendGeneral
   ): Promise<APIResponse<Message>> {
-    if (!body.userIds?.length || !body.roles?.length) {
+    if (!body.userIds?.length && !body.roles?.length) {
       this.setStatus(statusConst.invalidData.code);
       return toResponse({
         error: "At least one of userIds or roles is required",
