@@ -9,7 +9,7 @@ export type PaginationParams = {
 
 export type PaginationResponse<T> = {
   list: T[];
-  total: number;
+  total?: number;
 };
 
 export const paginatedQuery = async <T>(
@@ -26,7 +26,10 @@ export const paginatedQuery = async <T>(
 
   const [list, total] = await prisma.$transaction([
     (prisma[model] as any).findMany(findQuery),
-    (prisma[model] as any).count(omit(query, ["include", "select"])),
+    // If pagination is enabled then fetch total count as well
+    ...(paginationParams?.limit
+      ? [(prisma[model] as any).count(omit(query, ["include", "select"]))]
+      : []),
   ]);
 
   return {

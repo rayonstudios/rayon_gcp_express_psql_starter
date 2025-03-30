@@ -48,6 +48,8 @@ export const sendNotification = async (
     event: NotificationEvent;
   } & Pick<Notification, "title" | "body" | "image" | "link">
 ) => {
+  if (!userIds.length) return;
+
   const tokens: string[] = (
     await Promise.all(
       userIds.map(async (id) => {
@@ -126,9 +128,11 @@ export const sendNotification = async (
       },
     }),
     // Send push notification
-    messaging()
-      .sendEachForMulticast(config)
-      .catch(() => console.log("Error in sendEachForMulticast")),
+    tokens.length
+      ? messaging()
+          .sendEachForMulticast(config)
+          .catch((e) => console.log("Error in sendEachForMulticast:", e))
+      : Promise.resolve(),
   ]);
 
   // Create user notifications to be used to fetch later

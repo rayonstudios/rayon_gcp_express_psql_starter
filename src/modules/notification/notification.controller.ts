@@ -1,4 +1,5 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
+import { GenericObject } from "#/src/lib/types/utils";
 import { toResponse } from "#/src/lib/utils";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
@@ -18,11 +19,11 @@ import { getReqUser } from "../auth/auth.helpers";
 import notificationSerializer from "./notification.serializer";
 import notificationService from "./notification.service";
 import {
+  Notification,
   NotificationEvent,
   NotificationFetchList,
   NotificationPayload,
   NotificationSendGeneral,
-  UserNotification,
 } from "./notification.types";
 
 @Route("notifications")
@@ -31,7 +32,7 @@ export class NotificationController extends Controller {
   @Post("/webhooks/handle-trigger")
   @Security("api_key")
   public async handleTrigger(
-    @Body() body: NotificationPayload
+    @Body() body: NotificationPayload & { taskMetadata: GenericObject }
   ): Promise<APIResponse<Message>> {
     await notificationService.send(body);
     return toResponse({ data: { message: "Notification sent!" } });
@@ -64,7 +65,7 @@ export class NotificationController extends Controller {
   public async fetchList(
     @Request() req: ExReq,
     @Queries() query: NotificationFetchList
-  ): Promise<APIResponse<PaginationResponse<UserNotification>>> {
+  ): Promise<APIResponse<PaginationResponse<Notification>>> {
     const { id } = getReqUser(req);
 
     const res = await notificationService.fetchList({ ...query, userId: id });

@@ -11,5 +11,5 @@ export const FE_URL = isDevEnv()
   : "https://rayon-react-starter.web.app/";
 
 export const BE_URL = isDevEnv()
-  ? "https://rayon-gcp-starter.ue.r.appspot.com"
-  : "https://rayon-gcp-starter.ue.r.appspot.com";
+  ? "https://rayon-gcp-starter.ue.r.appspot.com/api"
+  : "https://rayon-gcp-starter.ue.r.appspot.com/api";

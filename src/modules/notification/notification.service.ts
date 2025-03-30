@@ -12,15 +12,18 @@ import {
   UserNotification,
 } from "./notification.types";
 
-const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
+const trigger = async (payload: NotificationPayload, ignoreErrors = true) => {
   try {
     await cloudTaskService.add({
       queuePath: process.env.GENERAL_TASKS_QUEUE!,
-      runsAt: data.timestamp ?? new Date(),
-      url: `${BE_URL}/notifications/webhooks/handle-trigger?api_key=${process.env.API_KEY_SECRET}`,
+      runsAt: payload.timestamp ?? new Date(),
+      url: `${BE_URL}/notifications/webhooks/handle-trigger?apiKey=${process.env.API_KEY_SECRET}`,
       httpMethod: "POST",
-      body: data as any,
-      headers: { "Content-Type": "application/json" },
+      body: payload as any,
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
     });
   } catch (error) {
     console.error("Error triggering notification", error);
