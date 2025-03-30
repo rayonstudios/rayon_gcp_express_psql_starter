@@ -5,8 +5,8 @@ import {
 } from "#/src/lib/mail/mail.types";
 import { randomString } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
+import { User } from "#/src/modules/user/user.types";
 import dayjs from "dayjs";
-import { User } from "../user/user.types";
 
 const send = async (user: User, templateMethod: AuthTemplateType) => {
   const otp = randomString(6);

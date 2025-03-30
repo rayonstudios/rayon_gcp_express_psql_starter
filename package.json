@@ -38,6 +38,7 @@
     "ext": "ts"
   },
   "dependencies": {
+    "@google-cloud/tasks": "^5.5.2",
     "@prisma/client": "5.20.0",
     "@sendinblue/client": "^3.3.1",
     "bcrypt": "^5.1.1",

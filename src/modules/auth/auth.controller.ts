@@ -1,3 +1,4 @@
+import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { isImage, toResponse } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
@@ -18,7 +19,8 @@ import {
   UploadedFile,
 } from "tsoa";
 import fileService from "../file/file.service";
-import otpService from "../otp/otp.service";
+import notificationService from "../notification/notification.service";
+import { NotificationEvent } from "../notification/notification.types";
 import userSerializer from "../user/user.serializer";
 import { SanitizedUser } from "../user/user.types";
 import { getReqUser } from "./auth.helpers";
@@ -108,9 +110,17 @@ export class AuthController extends Controller {
       photo: photoUrl,
       role: Role.USER,
       fcm_tokens: [],
-      read_count: 0,
+      unread_noti_count: 0,
     });
     await otpService.send(user, "verifyEmail");
+
+    await notificationService.trigger({
+      event: NotificationEvent.SIGN_UP,
+      data: {
+        name: user.name,
+        email: user.email,
+      },
+    });
 
     return toResponse({
       data: userSerializer.single(user),
