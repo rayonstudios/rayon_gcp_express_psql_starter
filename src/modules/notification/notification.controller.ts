@@ -49,10 +49,13 @@ export class NotificationController extends Controller {
       });
     }
 
-    await notificationService.trigger({
-      event: NotificationEvent.GENERAL,
-      data: body,
-    });
+    await notificationService.trigger(
+      {
+        event: NotificationEvent.GENERAL,
+        data: body,
+      },
+      false
+    );
     return toResponse({ data: { message: "Notification sent!" } });
   }
 
