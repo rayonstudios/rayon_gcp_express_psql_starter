@@ -15,7 +15,7 @@ import {
 const trigger = async (data: NotificationPayload, ignoreErrors = true) => {
   try {
     await cloudTaskService.add({
-      queuePath: process.env.NOTIFICATIONS_QUEUE_PATH!,
+      queuePath: process.env.GENERAL_TASKS_QUEUE!,
       runsAt: data.timestamp ?? new Date(),
       url: `${BE_URL}/notifications/webhooks/handle-trigger?api_key=${process.env.API_KEY_SECRET}`,
       httpMethod: "POST",
