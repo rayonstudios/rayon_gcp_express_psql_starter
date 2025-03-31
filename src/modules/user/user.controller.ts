@@ -1,3 +1,4 @@
+import mailService from "#/src/lib/mail/mail.service";
 import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
@@ -79,7 +80,22 @@ export class UserController extends Controller {
     }
 
     const user = await userService.create({ ...body, password: "" });
-    await otpService.send(user, "inviteUser");
+    const reqUserData = await userService
+      .fetch(reqUser.id)
+      .catch(console.error);
+
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.inviteUser({
+        otp,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        inviter: reqUserData?.name ?? reqUser.email,
+      }),
+    });
 
     this.setStatus(statusConst.created.code);
     return toResponse({ data: userSerializer.single(user) });

@@ -39,7 +39,8 @@ async function create(data: UserCreate & { password: string }) {
     data: {
       ...omit(data, "password"),
       password_hash,
-      bio: data.bio || "",
+      fcm_tokens: [],
+      unread_noti_count: 0,
     },
   });
   return user;

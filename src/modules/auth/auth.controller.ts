@@ -1,3 +1,4 @@
+import mailService from "#/src/lib/mail/mail.service";
 import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { isImage, toResponse } from "#/src/lib/utils";
@@ -109,10 +110,18 @@ export class AuthController extends Controller {
       bio,
       photo: photoUrl,
       role: Role.USER,
-      fcm_tokens: [],
-      unread_noti_count: 0,
     });
-    await otpService.send(user, "verifyEmail");
+
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.verifyEmail({
+        otp,
+        name: user.name,
+        email: user.email,
+      }),
+    });
 
     await notificationService.trigger({
       event: NotificationEvent.SIGN_UP,
@@ -189,7 +198,16 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    await otpService.send(user, "forgotPassword");
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.resetPassword({
+        otp,
+        name: user.name,
+        email: user.email,
+      }),
+    });
 
     return toResponse({
       data: { message: "Forgot password email sent successfully!" },
@@ -266,7 +284,16 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    await otpService.send(user, "verifyEmail");
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.verifyEmail({
+        otp,
+        name: user.name,
+        email: user.email,
+      }),
+    });
 
     return toResponse({
       data: { message: "Verification Mail has been sent  successfully" },

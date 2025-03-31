@@ -1,42 +1,37 @@
-import mailService from "#/src/lib/mail/mail.service";
-import {
-  AuthTemplateParams,
-  AuthTemplateType,
-} from "#/src/lib/mail/mail.types";
 import { randomString } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
-import { User } from "#/src/modules/user/user.types";
 import dayjs from "dayjs";
 
-const send = async (user: User, templateMethod: AuthTemplateType) => {
+const create = async (email: string) => {
   const otp = randomString(6);
   await prisma.otps.create({
-    data: { email: user.email, otp },
+    data: { email, otp },
   });
+  return otp;
 
-  let templateParams: AuthTemplateParams;
+  // let templateParams: AuthTemplateParams;
 
-  if (templateMethod === "inviteUser") {
-    templateParams = {
-      otp,
-      name: user.name,
-      email: user.email,
-      role: user.role!,
-    };
-  } else {
-    templateParams = {
-      otp,
-      email: user.email,
-      name: user.name,
-    };
-  }
+  // if (templateMethod === "inviteUser") {
+  //   templateParams = {
+  //     otp,
+  //     name: user.name,
+  //     email: user.email,
+  //     role: user.role!,
+  //   };
+  // } else {
+  //   templateParams = {
+  //     otp,
+  //     email: user.email,
+  //     name: user.name,
+  //   };
+  // }
 
-  await mailService.send({
-    to: user.email,
-    template: mailService.templates.authentication[templateMethod](
-      templateParams as any
-    ),
-  });
+  // await mailService.send({
+  //   to: user.email,
+  //   template: mailService.templates.authentication[templateMethod](
+  //     templateParams as any
+  //   ),
+  // });
 };
 
 const verify = async ({ email, otp }: { email: string; otp: string }) => {
@@ -62,7 +57,7 @@ const verify = async ({ email, otp }: { email: string; otp: string }) => {
 };
 
 const otpService = {
-  send,
+  create,
   verify,
 };
 

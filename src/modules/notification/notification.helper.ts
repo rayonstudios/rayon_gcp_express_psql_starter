@@ -1,4 +1,5 @@
 import { THEME_COLOR } from "#/src/lib/constants";
+import mailService from "#/src/lib/mail/mail.service";
 import { GenericObject } from "#/src/lib/types/utils";
 import { prisma } from "#/src/lib/utils/prisma";
 import { Role } from "#/src/lib/utils/roles";
@@ -84,7 +85,6 @@ export const sendNotification = async (
       notification: {
         color: THEME_COLOR,
         sound: "default",
-        icon: "/logo192.png",
       },
     },
     apns: {
@@ -98,7 +98,7 @@ export const sendNotification = async (
     webpush: {
       headers: {},
       notification: {
-        icon: "/logo192.png",
+        // icon: "/logo192.png",
       },
       fcmOptions: {},
     },
@@ -115,8 +115,8 @@ export const sendNotification = async (
     config.webpush!.notification!.image = image;
   }
 
-  const [res] = await Promise.all([
-    // Create notification in DB
+  const [dbNotification] = await Promise.all([
+    // In App notification
     prisma.notifications.create({
       data: {
         title,
@@ -127,18 +127,28 @@ export const sendNotification = async (
         event: event,
       },
     }),
-    // Send push notification
+    // Push notification
     tokens.length
       ? messaging()
           .sendEachForMulticast(config)
           .catch((e) => console.log("Error in sendEachForMulticast:", e))
       : Promise.resolve(),
+    // Email notification
+    mailService.send({
+      to: userIds,
+      template: mailService.templates.notification.general({
+        title,
+        body,
+        image: image || undefined,
+        link: link || undefined,
+      }),
+    }),
   ]);
 
   // Create user notifications to be used to fetch later
   await prisma.userNotifications.createMany({
     data: userIds.map((id) => ({
-      notification_id: res.id,
+      notification_id: dbNotification.id,
       user_id: id,
     })),
   });

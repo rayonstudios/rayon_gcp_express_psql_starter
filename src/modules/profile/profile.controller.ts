@@ -66,7 +66,7 @@ export class ProfileController extends Controller {
 
     const filteredData = Object.fromEntries(
       Object.entries(data).filter(
-        ([_, v]) => v !== undefined && v !== null && v !== ""
+        ([_, v]) => ![undefined, null, ""].includes(v)
       )
     );
 
