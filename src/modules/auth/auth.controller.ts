@@ -136,7 +136,7 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/verifyEmail")
+  @Post("/verify-email")
   @Middlewares(validateData(authValidations.resetPass.omit({ password: true })))
   public async verifyEmail(
     @Body() body: AuthVerifyEmail
@@ -164,7 +164,7 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/signoutAll")
+  @Post("/signout-all")
   @Security("jwt")
   public async signout(@Request() req: ExReq): Promise<APIResponse<Message>> {
     const { id } = getReqUser(req);
@@ -178,7 +178,7 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/forgotPassword")
+  @Post("/forgot-password")
   @Middlewares(validateData(authValidations.forgotPass))
   public async forgotPassword(
     @Request() req: ExReq,
@@ -214,7 +214,7 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/resetPassword")
+  @Post("/reset-password")
   @Middlewares(validateData(authValidations.resetPass))
   public async resetPassword(
     @Body() body: AuthResetPass
@@ -239,7 +239,7 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/changePassword")
+  @Post("/change-password")
   @Security("jwt")
   @Middlewares(validateData(authValidations.changePass))
   public async changePassword(
@@ -265,7 +265,7 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/resendVerification")
+  @Post("/resend-verification")
   @Middlewares(validateData(authValidations.forgotPass))
   public async resendVerification(
     @Request() req: ExReq,

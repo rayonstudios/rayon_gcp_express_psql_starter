@@ -17,12 +17,11 @@ const trigger = async (payload: NotificationPayload, ignoreErrors = true) => {
     await cloudTaskService.add({
       queuePath: process.env.GENERAL_TASKS_QUEUE!,
       runsAt: payload.timestamp ?? new Date(),
-      url: `${BE_URL}/notifications/webhooks/handle-trigger?apiKey=${process.env.API_KEY_SECRET}`,
+      url: `${BE_URL}/notifications/webhooks/handle-trigger?api_key=${process.env.API_KEY_SECRET}`,
       httpMethod: "POST",
       body: payload as any,
       headers: {
         "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
       },
     });
   } catch (error) {
