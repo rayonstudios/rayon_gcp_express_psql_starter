@@ -5,6 +5,7 @@ import morgan from "morgan";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
 import { globalErrorHandler } from "./middlewares/error.middleware";
+import { notFoundMiddleware } from "./middlewares/not-found.middleware";
 import { setupSwagger } from "./middlewares/swagger.middleware";
 
 export const app = express();
@@ -33,7 +34,13 @@ RegisterRoutes(app, {
 });
 
 // swagger docs
-app.use("/", swaggerUi.serve, setupSwagger);
+app.use("/api/docs", swaggerUi.serve, setupSwagger);
+app.get("/", (_, res) => {
+  res.redirect("/api/docs");
+});
+
+// handle non-existing routes
+app.use(notFoundMiddleware);
 
 // global error handler
 app.use(globalErrorHandler);

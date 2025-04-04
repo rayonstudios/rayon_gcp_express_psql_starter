@@ -14,6 +14,13 @@ type File = Express.Multer.File & {
   resizeConfig?: Resizeconfig;
 };
 
+const renameDuplicateFile = (name: string) => {
+  const hasExtension = name.includes(".");
+  const fileName = hasExtension ? name.split(".").slice(0, -1).join(".") : name;
+  const fileExtension = hasExtension ? name.split(".").pop() : "";
+  return `${fileName}-copy-${Date.now()}${fileExtension ? `.${fileExtension}` : ""}`;
+};
+
 const _save = async (file: File, overwrite: boolean) => {
   const metadata: Record<string, string> = {};
   if (file.createdBy) metadata.createdBy = file.createdBy;
@@ -23,7 +30,9 @@ const _save = async (file: File, overwrite: boolean) => {
     : await bucket.file(file.originalname).exists();
 
   const uploadedFile = await bucket.upload(file.path, {
-    destination: existing[0] ? `${file.originalname} copy` : file.originalname,
+    destination: existing[0]
+      ? renameDuplicateFile(file.originalname)
+      : file.originalname,
     metadata: {
       contentType: file.mimetype,
       metadata,
