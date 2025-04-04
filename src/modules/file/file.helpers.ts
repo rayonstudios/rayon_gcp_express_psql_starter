@@ -7,6 +7,7 @@ import os from "os";
 import path from "path";
 import sharp from "sharp";
 import fileService, { bucket } from "./file.service";
+import { Resizeconfig } from "./file.types";
 
 export function isImageUrl(url: string): boolean {
   const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"];
@@ -70,7 +71,7 @@ export const IMAGE_SIZES = {
 
 export async function getResizedImages(
   url: string,
-  sizes: (keyof typeof IMAGE_SIZES)[],
+  sizes: Resizeconfig["sizes"],
   fallbackName?: string
 ) {
   const availableSizes = uniq(sizes);

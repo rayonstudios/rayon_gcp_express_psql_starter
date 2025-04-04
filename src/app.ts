@@ -36,7 +36,7 @@ RegisterRoutes(app, {
 });
 
 // open api
-app.use("/openapi.json", (_, res) => {
+app.use("/api/openapi.json", (_, res) => {
   res.sendFile("swagger.json", { root: "." });
 });
 

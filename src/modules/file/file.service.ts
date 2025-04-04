@@ -17,11 +17,6 @@ type File = Express.Multer.File & {
 const _save = async (file: File, overwrite: boolean) => {
   const metadata: Record<string, string> = {};
   if (file.createdBy) metadata.createdBy = file.createdBy;
-  if (file.resizeConfig) {
-    Object.entries(file.resizeConfig).forEach(([key, value]) => {
-      metadata[key] = value;
-    });
-  }
 
   const existing = overwrite
     ? [false]
@@ -37,19 +32,7 @@ const _save = async (file: File, overwrite: boolean) => {
 
   const url = await getDownloadUrl(uploadedFile);
   if (file.resizeConfig) {
-    await cloudTaskService.add({
-      queuePath: process.env.GENERAL_TASKS_QUEUE!,
-      runsAt: new Date(), // Run immediately
-      url: `${BE_URL}/files/webhooks/handle-img-resize?api_key=${process.env.API_KEY_SECRET}`,
-      httpMethod: "POST",
-      body: {
-        url,
-        resize_config: file.resizeConfig,
-      } as any,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    await resizeImg(url, file.resizeConfig);
   }
 
   return url;
@@ -74,10 +57,27 @@ const remove = async (fileUrl: string) => {
   await bucket.file(filePath).delete();
 };
 
+const resizeImg = async (url: string, resizeConfig: Resizeconfig) => {
+  await cloudTaskService.add({
+    queuePath: process.env.GENERAL_TASKS_QUEUE!,
+    runsAt: new Date(), // Run immediately
+    url: `${BE_URL}/files/webhooks/handle-img-resize?api_key=${process.env.API_KEY_SECRET}`,
+    httpMethod: "POST",
+    body: {
+      url,
+      resize_config: resizeConfig,
+    } as any,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
 const fileService = {
   fetch,
   save,
   remove,
+  resizeImg,
 };
 
 export default fileService;

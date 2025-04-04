@@ -7,6 +7,7 @@ import {
   Body,
   Controller,
   Delete,
+  FormField,
   Post,
   Request,
   Route,
@@ -26,14 +27,23 @@ export class FileController extends Controller {
   @Post("/")
   public async create(
     @UploadedFile() file: Express.Multer.File,
-    @Request() req: ExReq
-  ): Promise<APIResponse<{ url: string }>> {
+    @Request() req: ExReq,
+    @FormField() img_sizes?: string
+  ): Promise<APIResponse<{ url: string; img_sizes?: Record<string, string> }>> {
     const reqUser = getReqUser(req);
+    let sizes = {};
+
     const [url] = await fileService.save([{ ...file, createdBy: reqUser.id }]);
+
+    if (img_sizes)
+      sizes = await getResizedImages(
+        url,
+        img_sizes.split(",") as unknown as Resizeconfig["sizes"]
+      );
 
     this.setStatus(statusConst.created.code);
     return toResponse({
-      data: { url },
+      data: { url, img_sizes: sizes },
     });
   }
 
@@ -61,7 +71,7 @@ export class FileController extends Controller {
   ): Promise<APIResponse<Message>> {
     const urlsMap = await getResizedImages(
       body.url,
-      body.resize_config.sizes.split(",") as any,
+      body.resize_config.sizes,
       `${body.resize_config.model}_${body.resize_config.record_id}_${body.resize_config.img_field}.jpg`
     );
 
