@@ -1,5 +1,4 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
-import { GenericObject } from "#/src/lib/types/utils";
 import { toResponse } from "#/src/lib/utils";
 import { prisma } from "#/src/lib/utils/prisma";
 import { statusConst } from "#/src/lib/utils/status";
@@ -16,9 +15,14 @@ import {
   UploadedFile,
 } from "tsoa";
 import { getReqUser } from "../auth/auth.helpers";
-import { getResizedImages } from "./file.helpers";
+import { getResizedImages, isImageUrl } from "./file.helpers";
 import fileService from "./file.service";
-import { Resizeconfig } from "./file.types";
+import {
+  FileDelete,
+  FileWebhookHandleResize,
+  FileWithImgVariants,
+  Resizeconfig,
+} from "./file.types";
 
 @Route("files")
 @Tags("Files")
@@ -29,21 +33,22 @@ export class FileController extends Controller {
     @UploadedFile() file: Express.Multer.File,
     @Request() req: ExReq,
     @FormField() img_sizes?: string
-  ): Promise<APIResponse<{ url: string; img_sizes?: Record<string, string> }>> {
+  ): Promise<APIResponse<FileWithImgVariants>> {
     const reqUser = getReqUser(req);
     let sizes = {};
 
     const [url] = await fileService.save([{ ...file, createdBy: reqUser.id }]);
 
-    if (img_sizes)
+    if (img_sizes && isImageUrl(url)) {
       sizes = await getResizedImages(
         url,
         img_sizes.split(",") as unknown as Resizeconfig["sizes"]
       );
+    }
 
     this.setStatus(statusConst.created.code);
     return toResponse({
-      data: { url, img_sizes: sizes },
+      data: Object.keys(sizes).length ? { url, img_sizes: sizes } : { url },
     });
   }
 
@@ -51,7 +56,7 @@ export class FileController extends Controller {
   @Security("jwt")
   public async remove(
     @Request() req: ExReq,
-    @Body() body: { url: string }
+    @Body() body: FileDelete
   ): Promise<APIResponse<Message>> {
     const file = await fileService.fetch(body.url);
     if (file.metadata.metadata?.createdBy !== getReqUser(req).id) {
@@ -67,9 +72,7 @@ export class FileController extends Controller {
   @Security("api_key")
   public async handleImageResize(
     @Body()
-    body: { url: string; resize_config: Resizeconfig } & {
-      taskMetadata: GenericObject;
-    }
+    body: FileWebhookHandleResize
   ): Promise<APIResponse<Message>> {
     const urlsMap = await getResizedImages(
       body.url,

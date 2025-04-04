@@ -8,30 +8,6 @@ const create = async (email: string) => {
     data: { email, otp },
   });
   return otp;
-
-  // let templateParams: AuthTemplateParams;
-
-  // if (templateMethod === "inviteUser") {
-  //   templateParams = {
-  //     otp,
-  //     name: user.name,
-  //     email: user.email,
-  //     role: user.role!,
-  //   };
-  // } else {
-  //   templateParams = {
-  //     otp,
-  //     email: user.email,
-  //     name: user.name,
-  //   };
-  // }
-
-  // await mailService.send({
-  //   to: user.email,
-  //   template: mailService.templates.authentication[templateMethod](
-  //     templateParams as any
-  //   ),
-  // });
 };
 
 const verify = async ({ email, otp }: { email: string; otp: string }) => {

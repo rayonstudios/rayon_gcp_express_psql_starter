@@ -7,3 +7,18 @@ export type Resizeconfig = {
   img_field: string;
   sizes: (keyof typeof IMAGE_SIZES)[];
 };
+
+export type FileWithImgVariants = {
+  url: string;
+  img_sizes?: Record<string, string>;
+};
+
+// endpoint request types
+export type FileDelete = {
+  url: string;
+};
+
+export type FileWebhookHandleResize = {
+  url: string;
+  resize_config: Resizeconfig;
+};
