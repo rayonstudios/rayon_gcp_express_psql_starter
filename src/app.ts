@@ -4,6 +4,7 @@ import express, { json, urlencoded } from "express";
 import morgan from "morgan";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
+import { ROUTES_BASE_PATH } from "./lib/constants";
 import { globalErrorHandler } from "./middlewares/error.middleware";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware";
 import { setupSwagger } from "./middlewares/swagger.middleware";
@@ -34,9 +35,9 @@ RegisterRoutes(app, {
 });
 
 // swagger docs
-app.use("/api/docs", swaggerUi.serve, setupSwagger);
+app.use(`${ROUTES_BASE_PATH}/docs`, swaggerUi.serve, setupSwagger);
 app.get("/", (_, res) => {
-  res.redirect("/api/docs");
+  res.redirect(`${ROUTES_BASE_PATH}/docs`);
 });
 
 // handle non-existing routes

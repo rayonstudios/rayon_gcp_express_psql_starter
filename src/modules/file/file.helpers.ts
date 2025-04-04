@@ -143,5 +143,8 @@ export async function getResizedImages(
     return acc;
   }, {});
 
+  //cleanup
+  fs.rmSync(imagePath, { force: true, recursive: true });
+
   return urlsMap;
 }

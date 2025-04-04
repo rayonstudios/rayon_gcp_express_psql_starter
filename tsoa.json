@@ -3,7 +3,7 @@
   "noImplicitAdditionalProperties": "throw-on-extras",
   "controllerPathGlobs": ["src/modules/**/*.controller.ts"],
   "spec": {
-    "basePath": "/api",
+    "basePath": "/api/v1",
     "outputDirectory": ".",
     "specVersion": 3,
     "securityDefinitions": {
@@ -15,7 +15,7 @@
     }
   },
   "routes": {
-    "basePath": "/api",
+    "basePath": "/api/v1",
     "routesDir": ".",
     "authenticationModule": "src/middlewares/auth.middleware.ts"
   },

@@ -26,7 +26,7 @@ import userSerializer from "../user/user.serializer";
 import { SanitizedUser } from "../user/user.types";
 import { getReqUser } from "./auth.helpers";
 import authSerializer from "./auth.serializer";
-import authSerivce from "./auth.service";
+import authService from "./auth.service";
 import {
   AuthChangePass,
   AuthForgotPass,
@@ -49,7 +49,7 @@ export class AuthController extends Controller {
 
     if (
       !user ||
-      !(await authSerivce.verifyPassword(body.password, user.password_hash))
+      !(await authService.verifyPassword(body.password, user.password_hash))
     ) {
       this.setStatus(statusConst.invalidCredentials.code);
       return toResponse({ error: statusConst.invalidCredentials.message });
@@ -60,7 +60,7 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.emailUnverified.message });
     }
 
-    const tokens = await authSerivce.generateTokens(user);
+    const tokens = await authService.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
@@ -82,7 +82,7 @@ export class AuthController extends Controller {
     @FormField() hcaptcha_token?: string,
     @UploadedFile() photo?: Express.Multer.File
   ): Promise<APIResponse<SanitizedUser>> {
-    if (!(await authSerivce.verifyHcaptcha(hcaptcha_token || "", req))) {
+    if (!(await authService.verifyHcaptcha(hcaptcha_token || "", req))) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({
         error: "Hcaptch verification failed",
@@ -164,7 +164,7 @@ export class AuthController extends Controller {
       data: { email_verified: true },
     });
 
-    const tokens = await authSerivce.generateTokens(user);
+    const tokens = await authService.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
@@ -195,7 +195,7 @@ export class AuthController extends Controller {
     @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
-    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+    if (!(await authService.verifyHcaptcha(body.hcaptcha_token || "", req))) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({
         error: "Hcaptch verification failed",
@@ -238,7 +238,7 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
-    const newPassword = await authSerivce.hashPassword(password);
+    const newPassword = await authService.hashPassword(password);
 
     await prisma.users.update({
       where: { email },
@@ -260,7 +260,7 @@ export class AuthController extends Controller {
     const { id } = getReqUser(req);
     const { password } = body;
 
-    const newHashedPassword = await authSerivce.hashPassword(password);
+    const newHashedPassword = await authService.hashPassword(password);
 
     await prisma.users.update({
       where: {
@@ -282,7 +282,7 @@ export class AuthController extends Controller {
     @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
-    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+    if (!(await authService.verifyHcaptcha(body.hcaptcha_token || "", req))) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({
         error: "Hcaptch verification failed",
@@ -324,7 +324,7 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    const tokens = await authSerivce.generateTokens(user);
+    const tokens = await authService.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
