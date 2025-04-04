@@ -22,9 +22,9 @@ import { Resizeconfig } from "./file.types";
 
 @Route("files")
 @Tags("Files")
-@Security("jwt")
 export class FileController extends Controller {
   @Post("/")
+  @Security("jwt")
   public async create(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: ExReq,
@@ -48,6 +48,7 @@ export class FileController extends Controller {
   }
 
   @Delete("/")
+  @Security("jwt")
   public async remove(
     @Request() req: ExReq,
     @Body() body: { url: string }
@@ -63,6 +64,7 @@ export class FileController extends Controller {
   }
 
   @Post("/webhooks/handle-img-resize")
+  @Security("api_key")
   public async handleImageResize(
     @Body()
     body: { url: string; resize_config: Resizeconfig } & {
