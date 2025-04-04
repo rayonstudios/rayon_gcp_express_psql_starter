@@ -2,7 +2,7 @@
 
 Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffold backend projects quickly with a wide range of pre-configured features, built-in best practices, and "batteries included." It leverages Google Cloud Platform for deployment and Prisma for database management, allowing you to focus on building functionality.
 
-[Live Demo](http://rayon-gcp-starter.ue.r.appspot.com/)
+[Live Demo](https://be.starters.rayonstudios.com/)
 
 ## Tech Stack
 
