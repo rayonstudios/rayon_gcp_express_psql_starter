@@ -53,7 +53,17 @@ export class ProfileController extends Controller {
 
     let photoUrl = "";
     if (photo) {
-      [photoUrl] = await fileService.save([photo]);
+      [photoUrl] = await fileService.save([
+        {
+          ...photo,
+          resizeConfig: {
+            model: "users",
+            img_field: "photo",
+            sizes: ["small", "medium"],
+            record_id: reqUser.id,
+          },
+        },
+      ]);
     }
 
     const data = {

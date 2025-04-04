@@ -48,6 +48,7 @@ model users {
   fcm_tokens            String[]
   bio                   String?
   unread_noti_count     Int?                @default(0)
+  photo_sizes           Json                @default("{}") @db.Json
   posts                 posts[]
   userNotifications     userNotifications[]
 }

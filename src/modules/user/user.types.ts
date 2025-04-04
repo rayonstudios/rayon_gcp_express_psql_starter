@@ -2,10 +2,13 @@ import { PrismaEntityMutable } from "#/src/lib/types/misc";
 import { Expand, Modify } from "#/src/lib/types/utils";
 import { PaginationParams } from "#/src/lib/utils/pagination";
 import { Prisma } from "@prisma/client";
-import { Optional } from "@prisma/client/runtime/library";
+import { JsonValue, Optional } from "@prisma/client/runtime/library";
 
 export type User = Expand<
-  Modify<Prisma.usersCreateManyInput, { fcm_tokens?: string[] }>
+  Modify<
+    Prisma.usersCreateManyInput,
+    { fcm_tokens?: string[]; photo_sizes?: JsonValue }
+  >
 >;
 
 export type SanitizedUser = Omit<
@@ -20,6 +23,7 @@ export type UserMutable = Omit<
   | "password_hash"
   | "fcm_tokens"
   | "unread_noti_count"
+  | "photo_sizes"
 >;
 
 // endpoint request types

@@ -49,11 +49,15 @@ export class AuthController extends Controller {
 
     if (
       !user ||
-      !user.email_verified ||
       !(await authSerivce.verifyPassword(body.password, user.password_hash))
     ) {
       this.setStatus(statusConst.invalidCredentials.code);
       return toResponse({ error: statusConst.invalidCredentials.message });
+    }
+
+    if (!user.email_verified) {
+      this.setStatus(statusConst.emailUnverified.code);
+      return toResponse({ error: statusConst.emailUnverified.message });
     }
 
     const tokens = await authSerivce.generateTokens(user);
