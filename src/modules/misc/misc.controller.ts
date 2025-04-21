@@ -8,21 +8,21 @@ import { Controller, Get, Post, Query, Route, Security, Tags } from "tsoa";
 @Tags("Miscellaneous")
 export class MiscController extends Controller {
   @Get("/status")
-  public async status(): Promise<APIResponse<Message>> {
+  public async miscGetStatus(): Promise<APIResponse<Message>> {
     return toResponse({
       data: { message: `Hello World! This is ${process.env.NODE_ENV} env` },
     });
   }
 
   @Get("/openapi.json")
-  public async openApi(): Promise<GenericObject> {
+  public async miscGetOpenApiSpec(): Promise<GenericObject> {
     const json = await import("#/swagger.json");
     return json;
   }
 
   @Post("/reload-secrets")
   @Security("api_key")
-  public async reloadSecrets(
+  public async miscReloadSecrets(
     @Query() api_key: string
   ): Promise<APIResponse<Message>> {
     const secrets = await fetchSecrets(isDevEnv() ? "dev" : "production");

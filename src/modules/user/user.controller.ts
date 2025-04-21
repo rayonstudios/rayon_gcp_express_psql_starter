@@ -37,7 +37,7 @@ import userValidations from "./user.validations";
 @Security("jwt", [Role.ADMIN])
 export class UserController extends Controller {
   @Get("{userId}")
-  public async fetch(
+  public async userFetch(
     @Path() userId: string
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.fetch(userId);
@@ -50,7 +50,7 @@ export class UserController extends Controller {
   }
 
   @Get("/")
-  public async fetchList(
+  public async userFetchList(
     @Queries()
     query: UserFetchList
   ): Promise<APIResponse<PaginationResponse<SanitizedUser>>> {
@@ -62,7 +62,7 @@ export class UserController extends Controller {
 
   @Post("/")
   @Middlewares(validateData(userValidations.create)) // route level middlewares
-  public async create(
+  public async userCreate(
     @Body() body: UserCreate,
     @Request() req: ExReq
   ): Promise<APIResponse<SanitizedUser>> {
@@ -102,7 +102,7 @@ export class UserController extends Controller {
   }
 
   @Patch("{userId}")
-  public async update(
+  public async userUpdate(
     @Path() userId: string,
     @Body() body: UserUpdate,
     @Request() req: ExReq
@@ -128,7 +128,7 @@ export class UserController extends Controller {
   }
 
   @Delete("{userId}")
-  public async remove(
+  public async userRemove(
     @Path() userId: string
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.remove(userId);

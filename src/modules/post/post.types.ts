@@ -1,17 +1,20 @@
 import { PrismaEntityMutable } from "#/src/lib/types/misc";
-import { Expand } from "#/src/lib/types/utils";
+import { Expand, Modify } from "#/src/lib/types/utils";
 import { PaginationParams } from "#/src/lib/utils/pagination";
 import { Prisma } from "@prisma/client";
 import { SanitizedUser, User } from "../user/user.types";
 
-export type PostUnlinked = Prisma.postsCreateManyInput;
+export type PostUnlinked = Expand<
+  Modify<Prisma.postsCreateManyInput, { labels: string[] }>
+>;
+type PostMutable = Omit<PrismaEntityMutable<PostUnlinked>, "views" | "slug">;
 
+// endpoint response types
 export type PostRaw = PostUnlinked & { author: User };
 
 export type Post = Expand<PostUnlinked & { author: SanitizedUser }>;
 
-type PostMutable = Omit<PrismaEntityMutable<PostUnlinked>, "views" | "slug">;
-
+// endpoint request types
 export type PostCreate = Expand<Omit<PostMutable, "author_id">>;
 
 export type PostUpdate = Expand<Partial<PostMutable>>;

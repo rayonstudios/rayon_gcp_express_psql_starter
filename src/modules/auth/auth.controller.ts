@@ -42,7 +42,7 @@ import authValidations from "./auth.validations";
 export class AuthController extends Controller {
   @Post("/login")
   @Middlewares(validateData(authValidations.login))
-  public async login(
+  public async authLogin(
     @Body() body: AuthLogin
   ): Promise<APIResponse<AuthLoginResponse>> {
     const user = await userService.fetchByEmail(body.email);
@@ -73,7 +73,7 @@ export class AuthController extends Controller {
 
   @Post("/signup")
   @Middlewares(validateData(authValidations.login))
-  public async signup(
+  public async authSignup(
     @Request() req: ExReq,
     @FormField() name: string,
     @FormField() email: string,
@@ -149,7 +149,7 @@ export class AuthController extends Controller {
 
   @Post("/verify-email")
   @Middlewares(validateData(authValidations.resetPass.omit({ password: true })))
-  public async verifyEmail(
+  public async authVerifyEmail(
     @Body() body: AuthVerifyEmail
   ): Promise<APIResponse<AuthLoginResponse>> {
     const { email, otp } = body;
@@ -177,7 +177,9 @@ export class AuthController extends Controller {
 
   @Post("/signout-all")
   @Security("jwt")
-  public async signout(@Request() req: ExReq): Promise<APIResponse<Message>> {
+  public async authSignout(
+    @Request() req: ExReq
+  ): Promise<APIResponse<Message>> {
     const { id } = getReqUser(req);
     await prisma.users.update({
       where: { id },
@@ -191,7 +193,7 @@ export class AuthController extends Controller {
 
   @Post("/forgot-password")
   @Middlewares(validateData(authValidations.forgotPass))
-  public async forgotPassword(
+  public async authForgotPassword(
     @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
@@ -227,7 +229,7 @@ export class AuthController extends Controller {
 
   @Post("/reset-password")
   @Middlewares(validateData(authValidations.resetPass))
-  public async resetPassword(
+  public async authResetPassword(
     @Body() body: AuthResetPass
   ): Promise<APIResponse<Message>> {
     const { password, email, otp } = body;
@@ -253,15 +255,25 @@ export class AuthController extends Controller {
   @Post("/change-password")
   @Security("jwt")
   @Middlewares(validateData(authValidations.changePass))
-  public async changePassword(
+  public async authChangePassword(
     @Body() body: AuthChangePass,
     @Request() req: ExReq
   ): Promise<APIResponse<Message>> {
     const { id } = getReqUser(req);
-    const { password } = body;
+    const { oldPassword, newPassword } = body;
 
-    const newHashedPassword = await authService.hashPassword(password);
+    const user = await userService.fetch(id);
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
 
+    if (!(await authService.verifyPassword(oldPassword, user.password_hash))) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({ error: "Invalid old password" });
+    }
+
+    const newHashedPassword = await authService.hashPassword(newPassword);
     await prisma.users.update({
       where: {
         id,
@@ -278,7 +290,7 @@ export class AuthController extends Controller {
 
   @Post("/resend-verification")
   @Middlewares(validateData(authValidations.forgotPass))
-  public async resendVerification(
+  public async authResendVerification(
     @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
@@ -313,7 +325,7 @@ export class AuthController extends Controller {
 
   @Post("/refresh")
   @Security("jwt")
-  public async refresh(
+  public async authRefresh(
     @Request() req: ExReq
   ): Promise<APIResponse<Omit<AuthLoginResponse, "user">>> {
     const { id } = getReqUser(req);

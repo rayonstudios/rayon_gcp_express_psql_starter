@@ -31,7 +31,7 @@ import {
 export class NotificationController extends Controller {
   @Post("/webhooks/handle-trigger")
   @Security("api_key")
-  public async handleTrigger(
+  public async notificationHandleTrigger(
     @Body() body: NotificationPayload & { taskMetadata: GenericObject }
   ): Promise<APIResponse<Message>> {
     await notificationService.send(body);
@@ -40,7 +40,7 @@ export class NotificationController extends Controller {
 
   @Post("/general")
   @Security("jwt", [Role.ADMIN])
-  public async sendGeneral(
+  public async notificationSendGeneral(
     @Body() body: NotificationSendGeneral
   ): Promise<APIResponse<Message>> {
     if (!body.userIds?.length && !body.roles?.length) {
@@ -62,7 +62,7 @@ export class NotificationController extends Controller {
 
   @Get("/")
   @Security("jwt")
-  public async fetchList(
+  public async notificationFetchList(
     @Request() req: ExReq,
     @Queries() query: NotificationFetchList
   ): Promise<APIResponse<PaginationResponse<Notification>>> {
@@ -74,7 +74,9 @@ export class NotificationController extends Controller {
 
   @Post("/mark-read")
   @Security("jwt")
-  public async markRead(@Request() req: ExReq): Promise<APIResponse<Message>> {
+  public async notificationMarkRead(
+    @Request() req: ExReq
+  ): Promise<APIResponse<Message>> {
     const { id } = getReqUser(req);
 
     await notificationService.markRead(id);

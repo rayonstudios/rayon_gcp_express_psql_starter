@@ -1,51 +1,14 @@
 import cloudTaskService from "#/src/lib/cloud-task/cloud-task.service";
 import { BE_URL } from "#/src/lib/constants";
+import { pathFromUrl } from "#/src/lib/utils/file.utils";
 import * as admin from "firebase-admin";
-import { getDownloadUrl, pathFromUrl } from "./file.helpers";
-import { Resizeconfig } from "./file.types";
+import { uploadFile } from "./file.helpers";
+import { FileUpload, Resizeconfig } from "./file.types";
 
 admin.initializeApp({
   storageBucket: process.env.STORAGE_BUCKET,
 });
 export const bucket = admin.storage().bucket();
-
-type File = Express.Multer.File & {
-  createdBy?: string;
-  resizeConfig?: Resizeconfig;
-};
-
-const renameDuplicateFile = (name: string) => {
-  const hasExtension = name.includes(".");
-  const fileName = hasExtension ? name.split(".").slice(0, -1).join(".") : name;
-  const fileExtension = hasExtension ? name.split(".").pop() : "";
-  return `${fileName}-copy-${Date.now()}${fileExtension ? `.${fileExtension}` : ""}`;
-};
-
-const _save = async (file: File, overwrite: boolean) => {
-  const metadata: Record<string, string> = {};
-  if (file.createdBy) metadata.createdBy = file.createdBy;
-
-  const existing = overwrite
-    ? [false]
-    : await bucket.file(file.originalname).exists();
-
-  const uploadedFile = await bucket.upload(file.path, {
-    destination: existing[0]
-      ? renameDuplicateFile(file.originalname)
-      : file.originalname,
-    metadata: {
-      contentType: file.mimetype,
-      metadata,
-    },
-  });
-
-  const url = await getDownloadUrl(uploadedFile);
-  if (file.resizeConfig) {
-    await resizeImg(url, file.resizeConfig);
-  }
-
-  return url;
-};
 
 const fetch = async (fileUrl: string) => {
   const bucket = admin.storage().bucket();
@@ -55,8 +18,10 @@ const fetch = async (fileUrl: string) => {
   return file;
 };
 
-const save = async (files: File[], overwrite = false) => {
-  const urls = await Promise.all(files.map((file) => _save(file, overwrite)));
+const save = async (files: FileUpload[], overwrite = false) => {
+  const urls = await Promise.all(
+    files.map((file) => uploadFile(file, overwrite))
+  );
   return urls;
 };
 

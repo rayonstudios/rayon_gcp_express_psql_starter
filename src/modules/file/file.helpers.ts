@@ -1,4 +1,10 @@
 import { GenericObject } from "#/src/lib/types/utils";
+import { reduceToArea } from "#/src/lib/utils";
+import {
+  extractFileName,
+  isImageUrl,
+  isStorageUrl,
+} from "#/src/lib/utils/file.utils";
 import { UploadResponse } from "@google-cloud/storage";
 import axios from "axios";
 import fs from "fs";
@@ -7,61 +13,7 @@ import os from "os";
 import path from "path";
 import sharp from "sharp";
 import fileService, { bucket } from "./file.service";
-import { Resizeconfig } from "./file.types";
-
-export function isImageUrl(url: string): boolean {
-  const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"];
-  return imageExtensions.some((ext) =>
-    url
-      .toLowerCase()
-      .split(".")
-      .some((part) => part.startsWith(ext))
-  );
-}
-
-export function extractFileName(url: string): string {
-  return decodeURIComponent(url.split("/").at(-1)?.split("?")?.[0] ?? "");
-}
-
-export const isStorageUrl = (url: string) => {
-  return url.startsWith(
-    `https://storage.googleapis.com/${process.env.STORAGE_BUCKET}`
-  );
-};
-
-export const reduceToArea = ({
-  width,
-  height,
-  area,
-}: {
-  width: number;
-  height: number;
-  area: number;
-}) => {
-  const imageArea = width * height;
-  const ratio = Math.sqrt(imageArea / area);
-
-  const shouldTransform = imageArea > area;
-
-  return {
-    width: shouldTransform ? Math.round(width / ratio) : width,
-    height: shouldTransform ? Math.round(height / ratio) : height,
-  };
-};
-
-export const pathFromUrl = (url: string) => {
-  const urlObj = new URL(url);
-  return decodeURIComponent(urlObj.pathname).split("/").at(-1)!;
-};
-
-export const getDownloadUrl = async (res: UploadResponse) => {
-  const [url] = await res[0].getSignedUrl({
-    action: "read",
-    expires: "03-09-2491",
-  });
-
-  return url;
-};
+import { FileUpload, Resizeconfig } from "./file.types";
 
 export const IMAGE_SIZES = {
   small: 125 * 125,
@@ -148,3 +100,45 @@ export async function getResizedImages(
 
   return urlsMap;
 }
+
+export const getDownloadUrl = async (res: UploadResponse) => {
+  const [url] = await res[0].getSignedUrl({
+    action: "read",
+    expires: "03-09-2491",
+  });
+
+  return url;
+};
+
+export const renameDuplicateFile = (name: string) => {
+  const hasExtension = name.includes(".");
+  const fileName = hasExtension ? name.split(".").slice(0, -1).join(".") : name;
+  const fileExtension = hasExtension ? name.split(".").pop() : "";
+  return `${fileName}-copy-${Date.now()}${fileExtension ? `.${fileExtension}` : ""}`;
+};
+
+export const uploadFile = async (file: FileUpload, overwrite: boolean) => {
+  const metadata: Record<string, string> = {};
+  if (file.createdBy) metadata.createdBy = file.createdBy;
+
+  const existing = overwrite
+    ? [false]
+    : await bucket.file(file.originalname).exists();
+
+  const uploadedFile = await bucket.upload(file.path, {
+    destination: existing[0]
+      ? renameDuplicateFile(file.originalname)
+      : file.originalname,
+    metadata: {
+      contentType: file.mimetype,
+      metadata,
+    },
+  });
+
+  const url = await getDownloadUrl(uploadedFile);
+  if (file.resizeConfig) {
+    await fileService.resizeImg(url, file.resizeConfig);
+  }
+
+  return url;
+};

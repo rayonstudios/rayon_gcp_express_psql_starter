@@ -1,5 +1,6 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
+import { isImageUrl } from "#/src/lib/utils/file.utils";
 import { prisma } from "#/src/lib/utils/prisma";
 import { statusConst } from "#/src/lib/utils/status";
 import {
@@ -15,7 +16,7 @@ import {
   UploadedFile,
 } from "tsoa";
 import { getReqUser } from "../auth/auth.helpers";
-import { getResizedImages, isImageUrl } from "./file.helpers";
+import { getResizedImages } from "./file.helpers";
 import fileService from "./file.service";
 import {
   FileDelete,
@@ -29,7 +30,7 @@ import {
 export class FileController extends Controller {
   @Post("/")
   @Security("jwt")
-  public async create(
+  public async fileCreate(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: ExReq,
     @FormField() img_sizes?: string
@@ -54,7 +55,7 @@ export class FileController extends Controller {
 
   @Delete("/")
   @Security("jwt")
-  public async remove(
+  public async fileRemove(
     @Request() req: ExReq,
     @Body() body: FileDelete
   ): Promise<APIResponse<Message>> {
@@ -70,7 +71,7 @@ export class FileController extends Controller {
 
   @Post("/webhooks/handle-img-resize")
   @Security("api_key")
-  public async handleImageResize(
+  public async fileHandleImageResize(
     @Body()
     body: FileWebhookHandleResize
   ): Promise<APIResponse<Message>> {

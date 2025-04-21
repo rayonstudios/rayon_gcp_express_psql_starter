@@ -26,7 +26,7 @@ import { profileService } from "./profile.services";
 @Security("jwt")
 export class ProfileController extends Controller {
   @Get("/")
-  public async fetch(
+  public async profileFetch(
     @Request() req: ExpressRequest
   ): Promise<APIResponse<SanitizedUser>> {
     const reqUser = getReqUser(req);
@@ -41,7 +41,7 @@ export class ProfileController extends Controller {
   }
 
   @Patch("/")
-  public async update(
+  public async profileUpdate(
     @Request() req: ExpressRequest,
     @FormField() name?: string,
     @FormField() bio?: string,
@@ -90,7 +90,7 @@ export class ProfileController extends Controller {
   }
 
   @Delete("/")
-  public async delete(
+  public async profileDelete(
     @Request() req: ExpressRequest
   ): Promise<APIResponse<SanitizedUser>> {
     const reqUser = getReqUser(req);
