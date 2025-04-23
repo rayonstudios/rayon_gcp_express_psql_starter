@@ -1,3 +1,4 @@
+import mailService from "#/src/lib/mail/mail.service";
 import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { isImage, toResponse } from "#/src/lib/utils";
@@ -25,7 +26,7 @@ import userSerializer from "../user/user.serializer";
 import { SanitizedUser } from "../user/user.types";
 import { getReqUser } from "./auth.helpers";
 import authSerializer from "./auth.serializer";
-import authSerivce from "./auth.service";
+import authService from "./auth.service";
 import {
   AuthChangePass,
   AuthForgotPass,
@@ -41,21 +42,25 @@ import authValidations from "./auth.validations";
 export class AuthController extends Controller {
   @Post("/login")
   @Middlewares(validateData(authValidations.login))
-  public async login(
+  public async authLogin(
     @Body() body: AuthLogin
   ): Promise<APIResponse<AuthLoginResponse>> {
     const user = await userService.fetchByEmail(body.email);
 
     if (
       !user ||
-      !user.email_verified ||
-      !(await authSerivce.verifyPassword(body.password, user.password_hash))
+      !(await authService.verifyPassword(body.password, user.password_hash))
     ) {
       this.setStatus(statusConst.invalidCredentials.code);
       return toResponse({ error: statusConst.invalidCredentials.message });
     }
 
-    const tokens = await authSerivce.generateTokens(user);
+    if (!user.email_verified) {
+      this.setStatus(statusConst.emailUnverified.code);
+      return toResponse({ error: statusConst.emailUnverified.message });
+    }
+
+    const tokens = await authService.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
@@ -68,7 +73,7 @@ export class AuthController extends Controller {
 
   @Post("/signup")
   @Middlewares(validateData(authValidations.login))
-  public async signup(
+  public async authSignup(
     @Request() req: ExReq,
     @FormField() name: string,
     @FormField() email: string,
@@ -77,7 +82,7 @@ export class AuthController extends Controller {
     @FormField() hcaptcha_token?: string,
     @UploadedFile() photo?: Express.Multer.File
   ): Promise<APIResponse<SanitizedUser>> {
-    if (!(await authSerivce.verifyHcaptcha(hcaptcha_token || "", req))) {
+    if (!(await authService.verifyHcaptcha(hcaptcha_token || "", req))) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({
         error: "Hcaptch verification failed",
@@ -109,10 +114,25 @@ export class AuthController extends Controller {
       bio,
       photo: photoUrl,
       role: Role.USER,
-      fcm_tokens: [],
-      unread_noti_count: 0,
     });
-    await otpService.send(user, "verifyEmail");
+
+    await fileService.resizeImg(photoUrl, {
+      model: "users",
+      record_id: user.id,
+      img_field: "photo",
+      sizes: ["small", "medium"],
+    });
+
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.verifyEmail({
+        otp,
+        name: user.name,
+        email: user.email,
+      }),
+    });
 
     await notificationService.trigger({
       event: NotificationEvent.SIGN_UP,
@@ -127,9 +147,9 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/verifyEmail")
+  @Post("/verify-email")
   @Middlewares(validateData(authValidations.resetPass.omit({ password: true })))
-  public async verifyEmail(
+  public async authVerifyEmail(
     @Body() body: AuthVerifyEmail
   ): Promise<APIResponse<AuthLoginResponse>> {
     const { email, otp } = body;
@@ -144,7 +164,7 @@ export class AuthController extends Controller {
       data: { email_verified: true },
     });
 
-    const tokens = await authSerivce.generateTokens(user);
+    const tokens = await authService.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });
@@ -155,9 +175,11 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/signoutAll")
+  @Post("/signout-all")
   @Security("jwt")
-  public async signout(@Request() req: ExReq): Promise<APIResponse<Message>> {
+  public async authSignout(
+    @Request() req: ExReq
+  ): Promise<APIResponse<Message>> {
     const { id } = getReqUser(req);
     await prisma.users.update({
       where: { id },
@@ -169,13 +191,13 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/forgotPassword")
+  @Post("/forgot-password")
   @Middlewares(validateData(authValidations.forgotPass))
-  public async forgotPassword(
+  public async authForgotPassword(
     @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
-    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+    if (!(await authService.verifyHcaptcha(body.hcaptcha_token || "", req))) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({
         error: "Hcaptch verification failed",
@@ -189,16 +211,25 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    await otpService.send(user, "forgotPassword");
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.resetPassword({
+        otp,
+        name: user.name,
+        email: user.email,
+      }),
+    });
 
     return toResponse({
       data: { message: "Forgot password email sent successfully!" },
     });
   }
 
-  @Post("/resetPassword")
+  @Post("/reset-password")
   @Middlewares(validateData(authValidations.resetPass))
-  public async resetPassword(
+  public async authResetPassword(
     @Body() body: AuthResetPass
   ): Promise<APIResponse<Message>> {
     const { password, email, otp } = body;
@@ -209,7 +240,7 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
-    const newPassword = await authSerivce.hashPassword(password);
+    const newPassword = await authService.hashPassword(password);
 
     await prisma.users.update({
       where: { email },
@@ -221,18 +252,28 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/changePassword")
+  @Post("/change-password")
   @Security("jwt")
   @Middlewares(validateData(authValidations.changePass))
-  public async changePassword(
+  public async authChangePassword(
     @Body() body: AuthChangePass,
     @Request() req: ExReq
   ): Promise<APIResponse<Message>> {
     const { id } = getReqUser(req);
-    const { password } = body;
+    const { oldPassword, newPassword } = body;
 
-    const newHashedPassword = await authSerivce.hashPassword(password);
+    const user = await userService.fetch(id);
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
 
+    if (!(await authService.verifyPassword(oldPassword, user.password_hash))) {
+      this.setStatus(statusConst.invalidData.code);
+      return toResponse({ error: "Invalid old password" });
+    }
+
+    const newHashedPassword = await authService.hashPassword(newPassword);
     await prisma.users.update({
       where: {
         id,
@@ -247,13 +288,13 @@ export class AuthController extends Controller {
     });
   }
 
-  @Post("/resendVerification")
+  @Post("/resend-verification")
   @Middlewares(validateData(authValidations.forgotPass))
-  public async resendVerification(
+  public async authResendVerification(
     @Request() req: ExReq,
     @Body() body: AuthForgotPass
   ): Promise<APIResponse<Message>> {
-    if (!(await authSerivce.verifyHcaptcha(body.hcaptcha_token || "", req))) {
+    if (!(await authService.verifyHcaptcha(body.hcaptcha_token || "", req))) {
       this.setStatus(statusConst.unAuthenticated.code);
       return toResponse({
         error: "Hcaptch verification failed",
@@ -266,7 +307,16 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    await otpService.send(user, "verifyEmail");
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.verifyEmail({
+        otp,
+        name: user.name,
+        email: user.email,
+      }),
+    });
 
     return toResponse({
       data: { message: "Verification Mail has been sent  successfully" },
@@ -275,7 +325,7 @@ export class AuthController extends Controller {
 
   @Post("/refresh")
   @Security("jwt")
-  public async refresh(
+  public async authRefresh(
     @Request() req: ExReq
   ): Promise<APIResponse<Omit<AuthLoginResponse, "user">>> {
     const { id } = getReqUser(req);
@@ -286,7 +336,7 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.notFound.message });
     }
 
-    const tokens = await authSerivce.generateTokens(user);
+    const tokens = await authService.generateTokens(user);
     if (!tokens) {
       this.setStatus(statusConst.internal.code);
       return toResponse({ error: statusConst.internal.message });

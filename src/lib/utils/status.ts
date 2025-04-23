@@ -15,6 +15,10 @@ export const statusConst = {
     message: "Invalid credentials",
     code: 401,
   },
+  emailUnverified: {
+    message: "Email is not verified",
+    code: 401,
+  },
   unAuthorized: {
     message:
       "Access denied. You do not have the required role to perform this action.",

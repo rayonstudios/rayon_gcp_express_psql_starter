@@ -1,3 +1,4 @@
+import mailService from "#/src/lib/mail/mail.service";
 import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
@@ -36,7 +37,7 @@ import userValidations from "./user.validations";
 @Security("jwt", [Role.ADMIN])
 export class UserController extends Controller {
   @Get("{userId}")
-  public async fetch(
+  public async userFetch(
     @Path() userId: string
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.fetch(userId);
@@ -49,7 +50,7 @@ export class UserController extends Controller {
   }
 
   @Get("/")
-  public async fetchList(
+  public async userFetchList(
     @Queries()
     query: UserFetchList
   ): Promise<APIResponse<PaginationResponse<SanitizedUser>>> {
@@ -61,7 +62,7 @@ export class UserController extends Controller {
 
   @Post("/")
   @Middlewares(validateData(userValidations.create)) // route level middlewares
-  public async create(
+  public async userCreate(
     @Body() body: UserCreate,
     @Request() req: ExReq
   ): Promise<APIResponse<SanitizedUser>> {
@@ -79,14 +80,29 @@ export class UserController extends Controller {
     }
 
     const user = await userService.create({ ...body, password: "" });
-    await otpService.send(user, "inviteUser");
+    const reqUserData = await userService
+      .fetch(reqUser.id)
+      .catch(console.error);
+
+    const otp = await otpService.create(user.email);
+
+    await mailService.send({
+      to: user.email,
+      template: mailService.templates.authentication.inviteUser({
+        otp,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        inviter: reqUserData?.name ?? reqUser.email,
+      }),
+    });
 
     this.setStatus(statusConst.created.code);
     return toResponse({ data: userSerializer.single(user) });
   }
 
   @Patch("{userId}")
-  public async update(
+  public async userUpdate(
     @Path() userId: string,
     @Body() body: UserUpdate,
     @Request() req: ExReq
@@ -112,7 +128,7 @@ export class UserController extends Controller {
   }
 
   @Delete("{userId}")
-  public async remove(
+  public async userRemove(
     @Path() userId: string
   ): Promise<APIResponse<SanitizedUser>> {
     const user = await userService.remove(userId);

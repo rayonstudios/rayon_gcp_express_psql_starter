@@ -26,7 +26,7 @@ import { profileService } from "./profile.services";
 @Security("jwt")
 export class ProfileController extends Controller {
   @Get("/")
-  public async fetch(
+  public async profileFetch(
     @Request() req: ExpressRequest
   ): Promise<APIResponse<SanitizedUser>> {
     const reqUser = getReqUser(req);
@@ -41,7 +41,7 @@ export class ProfileController extends Controller {
   }
 
   @Patch("/")
-  public async update(
+  public async profileUpdate(
     @Request() req: ExpressRequest,
     @FormField() name?: string,
     @FormField() bio?: string,
@@ -53,7 +53,17 @@ export class ProfileController extends Controller {
 
     let photoUrl = "";
     if (photo) {
-      [photoUrl] = await fileService.save([photo]);
+      [photoUrl] = await fileService.save([
+        {
+          ...photo,
+          resizeConfig: {
+            model: "users",
+            img_field: "photo",
+            sizes: ["small", "medium"],
+            record_id: reqUser.id,
+          },
+        },
+      ]);
     }
 
     const data = {
@@ -66,7 +76,7 @@ export class ProfileController extends Controller {
 
     const filteredData = Object.fromEntries(
       Object.entries(data).filter(
-        ([_, v]) => v !== undefined && v !== null && v !== ""
+        ([_, v]) => ![undefined, null, ""].includes(v)
       )
     );
 
@@ -80,7 +90,7 @@ export class ProfileController extends Controller {
   }
 
   @Delete("/")
-  public async delete(
+  public async profileDelete(
     @Request() req: ExpressRequest
   ): Promise<APIResponse<SanitizedUser>> {
     const reqUser = getReqUser(req);

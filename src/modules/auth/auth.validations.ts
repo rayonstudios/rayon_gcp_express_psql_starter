@@ -16,7 +16,8 @@ const resetPass = z.object({
 });
 
 const changePass = z.object({
-  password: z.string().min(6),
+  oldPassword: z.string().min(6),
+  newPassword: z.string().min(6),
 });
 
 const authValidations = {

@@ -29,6 +29,8 @@ async function fetchList(filters?: UserFetchList) {
   if (filters?.search)
     query = withSearch(query, ["name", "bio", "email"], filters.search);
 
+  if (filters?.role) query!.where = { role: filters.role };
+
   const res = await paginatedQuery<User>("users", query, filters);
   return res;
 }
@@ -39,7 +41,8 @@ async function create(data: UserCreate & { password: string }) {
     data: {
       ...omit(data, "password"),
       password_hash,
-      bio: data.bio || "",
+      fcm_tokens: [],
+      unread_noti_count: 0,
     },
   });
   return user;

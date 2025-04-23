@@ -56,12 +56,17 @@ async function verifyPassword(password: string, hash: string) {
 }
 
 async function verifyHcaptcha(hcaptcha_token: string, req: ExReq) {
-  if (!isAppEngine()) return true;
+  if (
+    !isAppEngine() ||
+    !process.env.HCAPTCHA_SECRET ||
+    !process.env.HCAPTCHA_SITE_KEY
+  )
+    return true;
 
   if (!hcaptcha_token) return false;
 
   const { success } = await verify(
-    process.env.HCAPTCHA_SECRET!,
+    process.env.HCAPTCHA_SECRET,
     hcaptcha_token,
     getIp(req),
     process.env.HCAPTCHA_SITE_KEY

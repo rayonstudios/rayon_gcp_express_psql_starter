@@ -33,7 +33,7 @@ const send = async ({
   html = text,
   cc = [],
 }: {
-  to: string;
+  to: string | string[];
   toName?: string;
   from?: string;
   fromName?: string;
@@ -53,10 +53,13 @@ const send = async ({
   smtpEmail.sender.name = fromName;
   smtpEmail.sender.email = from;
 
-  const toObj = new SibApiV3Sdk.SendSmtpEmailTo();
-  toObj.email = to;
-  if (toName) toObj.name = toName;
-  smtpEmail.to = [toObj];
+  if (typeof to === "string") to = [to];
+  smtpEmail.to = to.map((email) => {
+    const toObj = new SibApiV3Sdk.SendSmtpEmailTo();
+    toObj.email = email;
+    if (toName) toObj.name = toName;
+    return toObj;
+  });
 
   smtpEmail.subject = subject;
 

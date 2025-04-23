@@ -1,4 +1,5 @@
 import { prisma } from "#/src/lib/utils/prisma";
+import { omit } from "lodash";
 import { ProfileUpdate } from "./profile.types";
 
 const update = async (id: string, data: ProfileUpdate) => {
@@ -21,9 +22,7 @@ const update = async (id: string, data: ProfileUpdate) => {
   return prisma.users.update({
     where: { id },
     data: {
-      name: data.name,
-      bio: data.bio,
-      photo: data.photo,
+      ...omit(data, ["added_fcm_token", "removed_fcm_token"]),
       fcm_tokens: updatedTokens,
     },
   });

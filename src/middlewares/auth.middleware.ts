@@ -34,9 +34,9 @@ export const expressAuthentication = async (
   }
 
   if (securityName === "api_key") {
-    const { apiKey } = req.query;
+    const { api_key } = req.query;
 
-    if (apiKey !== process.env.API_KEY_SECRET) return sendUnAuthResponse();
+    if (api_key !== process.env.API_KEY_SECRET) return sendUnAuthResponse();
 
     return true;
   }
