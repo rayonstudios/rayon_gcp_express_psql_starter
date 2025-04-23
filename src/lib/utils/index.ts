@@ -51,3 +51,23 @@ export const getIp = (req: GenericObject) => {
   const prefix = "::ffff:";
   if (ip?.startsWith(prefix)) return ip.slice(prefix.length);
 };
+
+export const reduceToArea = ({
+  width,
+  height,
+  area,
+}: {
+  width: number;
+  height: number;
+  area: number;
+}) => {
+  const imageArea = width * height;
+  const ratio = Math.sqrt(imageArea / area);
+
+  const shouldTransform = imageArea > area;
+
+  return {
+    width: shouldTransform ? Math.round(width / ratio) : width,
+    height: shouldTransform ? Math.round(height / ratio) : height,
+  };
+};

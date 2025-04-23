@@ -45,7 +45,7 @@ const authentication = {
     };
   },
 
-  forgotPassword: ({
+  resetPassword: ({
     otp,
     name,
     email,
@@ -69,17 +69,20 @@ const authentication = {
     otp,
     name,
     email,
+    inviter,
     role,
   }: {
     otp: string;
     name: string;
     email: string;
-    role?: string;
+    inviter: string;
+    role: string;
   }) => {
     return {
       id: 3,
       data: {
         name,
+        inviter,
         role,
         link: `${FE_URL}/reset-password?email=${email}&otp=${otp}&new=true`,
         otp,

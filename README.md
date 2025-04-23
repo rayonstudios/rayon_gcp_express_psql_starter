@@ -2,7 +2,7 @@
 
 Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffold backend projects quickly with a wide range of pre-configured features, built-in best practices, and "batteries included." It leverages Google Cloud Platform for deployment and Prisma for database management, allowing you to focus on building functionality.
 
-[Live Demo](https://compact-flash-306512.el.r.appspot.com/)
+[Live Demo](https://be.starters.rayonstudios.com/)
 
 ## Tech Stack
 
@@ -21,7 +21,8 @@ Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffol
 
 - 🔄 **Shared Types for Models & Request Validation**: Ensure consistent data types across the entire stack by sharing types between models and request validation.
 - 📚 **Automatic Swagger Docs**: Generate comprehensive and up-to-date OpenAPI documentation straight from your codebase with tsoa.
-- 🔐 **JWT-based Authentication**: Secure authentication and authorization using JSON Web Tokens for stateless user sessions.
+- 🌐 **OpenAPI Specification**: Auto-generated OpenAPI JSON specification for seamless integration with API development tools and client SDKs.
+- 🔐 **Flexible Authentication**: Secure authentication and authorization using both JWT for user sessions and API keys for service-to-service communication.
 - 📜 **Request Validation with zod & tsoa**: Validate request data effortlessly using advanced schema validation with zod and TypeScript-based tsoa.
 - 📝 **Data Logging with Morgan**: Log incoming requests and responses for enhanced observability and debugging.
 - 🛡️ **Role-Based Access Control (RBAC)**: Manage user permissions and access levels through a robust role-based access control system.
@@ -29,9 +30,11 @@ Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffol
 - 🔄 **Automatic Schema Migration**: Automatically migrate database schemas using Xata CLI and GitHub Actions on PR merge.
 - 📧 **Pre-configured Email Client**: Easily send emails through Brevo with the built-in, ready-to-use email client.
 - 📂 **File Upload & Retrieval**: Handle file uploads and retrievals with multer and store them securely in Google Cloud Storage.
+- 🖼️ **Config-based Auto Image Resizing**: Automatically resize uploaded images in the background based on configurable presets and dimensions.
 - 🔄 **Live Code Reloading & Spec Generation**: Enjoy fast development cycles with live code reloading and on-the-fly API spec updates.
 - 🚀 **CI/CD for GCP App Engine Deployments**: Automated deployment pipelines using GitHub Actions for continuous integration and deployment to GCP.
 - 🔑 **Automatic Environment Variables with Infisical**: Simplify secret management and environment configuration using Infisical for secure variable injection.
+- 🔔 **Multi-channel Notifications**: Send notifications across in-app, push, and email channels with a unified API for user engagement.
 - 📊 **One-liner Pagination for Models**: Easily implement pagination for any database model with a single line of code.
 - 🔍 **One-liner Multi-Column Search**: Add multi-column search functionality to your modules with a single line of code using the `withSearch` higher-order function, mimicking full-text search capabilities.
 - 🛑 **Global Error Handling**: Catch and manage errors gracefully across your entire application with centralized error handling.

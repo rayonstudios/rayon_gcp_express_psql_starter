@@ -36,15 +36,45 @@ model posts {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
   name                  String
-  bio                   String
-  created_at            DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
-  id                    String   @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
-  refresh_token_version Int      @default(0)
-  role                  String   @default("user")
-  email_verified        Boolean  @default(false)
+  created_at            DateTime            @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at            DateTime            @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  id                    String              @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  refresh_token_version Int                 @default(0)
+  role                  String              @default("user")
+  email_verified        Boolean             @default(false)
   password_hash         String
-  email                 String   @unique(map: "users_email_unique")
+  email                 String              @unique(map: "users_email_unique")
   photo                 String?
+  fcm_tokens            String[]
+  bio                   String?
+  unread_noti_count     Int?                @default(0)
+  photo_sizes           Json                @default("{}") @db.Json
   posts                 posts[]
+  userNotifications     userNotifications[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model notifications {
+  id                String              @unique(map: "_pgroll_new_notifications_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  created_at        DateTime            @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  title             String
+  body              String
+  image             String?
+  link              String?
+  metadata          Json?               @db.Json
+  event             String
+  userNotifications userNotifications[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model userNotifications {
+  id              String        @unique(map: "_pgroll_new_userNotifications_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
+  created_at      DateTime      @default(now()) @map("xata_createdat") @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  user_id         String
+  notification_id String
+  notification    notifications @relation(fields: [notification_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_id_link")
+  user            users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_id_link")
 }

@@ -31,7 +31,8 @@ export type AuthResetPass = {
 };
 
 export type AuthChangePass = {
-  password: string;
+  oldPassword: string;
+  newPassword: string;
 };
 
 export type AuthLoginResponse = {

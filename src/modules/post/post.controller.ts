@@ -1,6 +1,7 @@
 import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
 import { PaginationResponse } from "#/src/lib/utils/pagination";
+import { prisma } from "#/src/lib/utils/prisma";
 import { statusConst } from "#/src/lib/utils/status";
 import {
   Body,
@@ -17,6 +18,8 @@ import {
   Tags,
 } from "tsoa";
 import { getReqUser } from "../auth/auth.helpers";
+import notificationService from "../notification/notification.service";
+import { NotificationEvent } from "../notification/notification.types";
 import { canMutatePost } from "./post.helpers";
 import postSerializer from "./post.serializer";
 import postService from "./post.service";
@@ -32,20 +35,26 @@ import {
 @Security("jwt")
 export class PostController extends Controller {
   @Get("{postId}")
-  public async fetch(@Path() postId: string): Promise<APIResponse<PostType>> {
+  public async postFetch(
+    @Path() postId: string
+  ): Promise<APIResponse<PostType>> {
     const post = await postService.fetch(postId);
     if (!post) {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
     }
 
+    // increment post views count by 1
+    await prisma.posts
+      .update({ where: { id: postId }, data: { views: { increment: 1 } } })
+      .catch(console.error);
+
     return toResponse({ data: postSerializer.single(post) });
   }
 
   @Get("/")
-  public async fetchList(
-    @Queries()
-    query: PostFetchList
+  public async postFetchList(
+    @Queries() query: PostFetchList
   ): Promise<APIResponse<PaginationResponse<PostType>>> {
     const res = await postService.fetchList(query);
     return toResponse({
@@ -54,7 +63,7 @@ export class PostController extends Controller {
   }
 
   @Post("/")
-  public async create(
+  public async postCreate(
     @Body() body: PostCreate,
     @Request() req: ExReq
   ): Promise<APIResponse<PostType>> {
@@ -62,12 +71,20 @@ export class PostController extends Controller {
 
     const post = await postService.create({ ...body, author_id: reqUser.id });
 
+    await notificationService.trigger({
+      event: NotificationEvent.NEW_POST,
+      data: {
+        author: post.author.name,
+        title: post.title,
+      },
+    });
+
     this.setStatus(statusConst.created.code);
     return toResponse({ data: postSerializer.single(post) });
   }
 
   @Patch("{postId}")
-  public async update(
+  public async postUpdate(
     @Path() postId: string,
     @Body() body: PostUpdate,
     @Request() req: ExReq
@@ -81,8 +98,8 @@ export class PostController extends Controller {
     }
 
     if (!canMutatePost(reqUser, existingPost)) {
-      this.setStatus(statusConst.unAuthenticated.code);
-      return toResponse({ error: statusConst.unAuthenticated.message });
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
     }
 
     const post = await postService.update(postId, body);
@@ -90,7 +107,7 @@ export class PostController extends Controller {
   }
 
   @Delete("{postId}")
-  public async remove(
+  public async postRemove(
     @Path() postId: string,
     @Request() req: ExReq
   ): Promise<APIResponse<PostType>> {
@@ -103,8 +120,8 @@ export class PostController extends Controller {
     }
 
     if (!canMutatePost(reqUser, existingPost)) {
-      this.setStatus(statusConst.unAuthenticated.code);
-      return toResponse({ error: statusConst.unAuthenticated.message });
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
     }
 
     const post = await postService.remove(postId);
