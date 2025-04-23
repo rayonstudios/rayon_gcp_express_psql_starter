@@ -29,6 +29,8 @@ async function fetchList(filters?: UserFetchList) {
   if (filters?.search)
     query = withSearch(query, ["name", "bio", "email"], filters.search);
 
+  if (filters?.role) query!.where = { role: filters.role };
+
   const res = await paginatedQuery<User>("users", query, filters);
   return res;
 }

@@ -269,7 +269,7 @@ export class AuthController extends Controller {
     }
 
     if (!(await authService.verifyPassword(oldPassword, user.password_hash))) {
-      this.setStatus(statusConst.unAuthenticated.code);
+      this.setStatus(statusConst.invalidData.code);
       return toResponse({ error: "Invalid old password" });
     }
 

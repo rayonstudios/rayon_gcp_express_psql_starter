@@ -98,8 +98,8 @@ export class PostController extends Controller {
     }
 
     if (!canMutatePost(reqUser, existingPost)) {
-      this.setStatus(statusConst.unAuthenticated.code);
-      return toResponse({ error: statusConst.unAuthenticated.message });
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
     }
 
     const post = await postService.update(postId, body);
@@ -120,8 +120,8 @@ export class PostController extends Controller {
     }
 
     if (!canMutatePost(reqUser, existingPost)) {
-      this.setStatus(statusConst.unAuthenticated.code);
-      return toResponse({ error: statusConst.unAuthenticated.message });
+      this.setStatus(statusConst.unAuthorized.code);
+      return toResponse({ error: statusConst.unAuthorized.message });
     }
 
     const post = await postService.remove(postId);

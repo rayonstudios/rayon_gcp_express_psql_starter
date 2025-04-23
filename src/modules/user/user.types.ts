@@ -1,6 +1,7 @@
 import { PrismaEntityMutable } from "#/src/lib/types/misc";
 import { Expand, Modify } from "#/src/lib/types/utils";
 import { PaginationParams } from "#/src/lib/utils/pagination";
+import { Role } from "#/src/lib/utils/roles";
 import { Prisma } from "@prisma/client";
 import { JsonValue, Optional } from "@prisma/client/runtime/library";
 
@@ -29,6 +30,7 @@ export type UserMutable = Omit<
 // endpoint request types
 export interface UserFetchList extends PaginationParams {
   search?: string;
+  role?: Role;
 }
 
 export type UserCreate = Expand<Optional<UserMutable, "bio">>;
