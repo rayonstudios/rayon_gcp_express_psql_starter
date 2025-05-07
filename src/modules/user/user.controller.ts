@@ -2,7 +2,7 @@ import mailService from "#/src/lib/mail/mail.service";
 import otpService from "#/src/lib/otp/otp.service";
 import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
-import { PaginationResponse } from "#/src/lib/utils/pagination";
+import { PaginationSortResponse } from "#/src/lib/utils/pagination";
 import { isAdminRole, isSuperAdminRole, Role } from "#/src/lib/utils/roles";
 import { statusConst } from "#/src/lib/utils/status";
 import { validateData } from "#/src/middlewares/validation.middleware";
@@ -53,7 +53,7 @@ export class UserController extends Controller {
   public async userFetchList(
     @Queries()
     query: UserFetchList
-  ): Promise<APIResponse<PaginationResponse<SanitizedUser>>> {
+  ): Promise<APIResponse<PaginationSortResponse<SanitizedUser>>> {
     const res = await userService.fetchList(query);
     return toResponse({
       data: userSerializer.paginated(res),

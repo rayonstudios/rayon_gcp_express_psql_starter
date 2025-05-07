@@ -1,7 +1,7 @@
 import cloudTaskService from "#/src/lib/cloud-task/cloud-task.service";
 import { BE_URL } from "#/src/lib/constants";
 import { GenericObject } from "#/src/lib/types/utils";
-import { paginatedQuery } from "#/src/lib/utils/pagination";
+import { paginatedSortQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { pick } from "lodash";
 import { getRecepientsIds, sendNotification } from "./notification.helper";
@@ -100,7 +100,7 @@ const fetchList = async (
     },
   };
 
-  const res = await paginatedQuery<UserNotification>(
+  const res = await paginatedSortQuery<UserNotification>(
     "userNotifications",
     query,
     pick(filters, ["limit", "page"])

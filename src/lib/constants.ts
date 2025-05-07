@@ -11,9 +11,9 @@ export const ROUTES_BASE_PATH = tsoaConfig.routes.basePath;
 
 // URLs
 export const FE_URL = isDevEnv()
-  ? "https://rayon-react-starter-dev.web.app/"
-  : "https://rayon-react-starter.web.app/";
+  ? "https://fe.starters.rayonstudios.com/"
+  : "https://fe.starters.rayonstudios.com/";
 
 export const BE_URL = isDevEnv()
-  ? `https://rayon-gcp-starter.ue.r.appspot.com${ROUTES_BASE_PATH}`
-  : `https://rayon-gcp-starter.ue.r.appspot.com${ROUTES_BASE_PATH}`;
+  ? `https://be.starters.rayonstudios.com/${ROUTES_BASE_PATH}`
+  : `https://be.starters.rayonstudios.com/${ROUTES_BASE_PATH}`;

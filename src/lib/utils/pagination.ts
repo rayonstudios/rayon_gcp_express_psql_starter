@@ -2,26 +2,42 @@ import { Prisma } from "@prisma/client";
 import { cloneDeep, omit } from "lodash";
 import { prisma } from "./prisma";
 
-export type PaginationParams = {
+export type SortFields<T, K extends keyof T> = K;
+
+export enum SortOrder {
+  Asc = "asc",
+  Desc = "desc",
+}
+
+export type PaginationSortParams<T> = {
   page?: number;
   limit?: number;
+  sortField?: T;
+  sortOrder?: SortOrder;
 };
 
-export type PaginationResponse<T> = {
+export type PaginationSortResponse<T> = {
   list: T[];
   total?: number;
 };
 
-export const paginatedQuery = async <T>(
+// Todo: support sorting relations' fields
+export const paginatedSortQuery = async <T>(
   model: Prisma.ModelName,
   query: any,
-  paginationParams?: PaginationParams
-): Promise<PaginationResponse<T>> => {
+  paginationParams?: PaginationSortParams<keyof T>
+): Promise<PaginationSortResponse<T>> => {
   const findQuery = cloneDeep(query);
   if (paginationParams?.limit) {
     findQuery.take = paginationParams.limit;
     findQuery.skip =
       paginationParams.limit * ((paginationParams.page || 1) - 1);
+  }
+
+  if (paginationParams?.sortField && paginationParams?.sortOrder) {
+    findQuery.orderBy = {
+      [paginationParams.sortField]: paginationParams.sortOrder,
+    };
   }
 
   const [list, total] = await prisma.$transaction([

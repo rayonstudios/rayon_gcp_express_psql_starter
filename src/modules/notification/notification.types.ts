@@ -1,6 +1,6 @@
 import { PrismaEntityMutable } from "#/src/lib/types/misc";
 import { Expand, GenericObject } from "#/src/lib/types/utils";
-import { PaginationParams } from "#/src/lib/utils/pagination";
+import { PaginationSortParams, SortFields } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
 import { Prisma } from "@prisma/client";
 
@@ -12,6 +12,8 @@ export type Notification = Expand<
 
 type NotificationMutable = PrismaEntityMutable<Notification>;
 
+export type NotificationSortFields = SortFields<Notification, "created_at">;
+
 // endpoint request types
 export type NotificationSendGeneral = Expand<
   Omit<NotificationMutable, "event"> & {
@@ -21,7 +23,8 @@ export type NotificationSendGeneral = Expand<
   }
 >;
 
-export interface NotificationFetchList extends PaginationParams {}
+export interface NotificationFetchList
+  extends PaginationSortParams<NotificationSortFields> {}
 
 export type UserNotificationUnlinked = Prisma.userNotificationsCreateManyInput;
 export type UserNotification = Expand<

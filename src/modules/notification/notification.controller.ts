@@ -1,7 +1,7 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { GenericObject } from "#/src/lib/types/utils";
 import { toResponse } from "#/src/lib/utils";
-import { PaginationResponse } from "#/src/lib/utils/pagination";
+import { PaginationSortResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
 import { statusConst } from "#/src/lib/utils/status";
 import {
@@ -65,7 +65,7 @@ export class NotificationController extends Controller {
   public async notificationFetchList(
     @Request() req: ExReq,
     @Queries() query: NotificationFetchList
-  ): Promise<APIResponse<PaginationResponse<Notification>>> {
+  ): Promise<APIResponse<PaginationSortResponse<Notification>>> {
     const { id } = getReqUser(req);
 
     const res = await notificationService.fetchList({ ...query, userId: id });

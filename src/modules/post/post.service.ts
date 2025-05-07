@@ -1,5 +1,5 @@
 import { slugify } from "#/src/lib/utils";
-import { paginatedQuery } from "#/src/lib/utils/pagination";
+import { paginatedSortQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { withSearch } from "#/src/lib/utils/search";
 import { PostCreate, PostFetchList, PostRaw, PostUpdate } from "./post.types";
@@ -38,7 +38,7 @@ async function fetchList(filters?: PostFetchList) {
   if (filters?.search)
     query = withSearch(query, ["author.name", "title", "text"], filters.search);
 
-  const res = await paginatedQuery<PostRaw>("posts", query, filters);
+  const res = await paginatedSortQuery<PostRaw>("posts", query, filters);
   return res;
 }
 
