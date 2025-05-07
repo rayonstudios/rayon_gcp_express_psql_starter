@@ -1,6 +1,6 @@
 import { PrismaEntityMutable } from "#/src/lib/types/misc";
 import { Expand, Modify } from "#/src/lib/types/utils";
-import { PaginationParams } from "#/src/lib/utils/pagination";
+import { PaginationSortParams, SortFields } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
 import { Prisma } from "@prisma/client";
 import { JsonValue, Optional } from "@prisma/client/runtime/library";
@@ -27,8 +27,13 @@ export type UserMutable = Omit<
   | "photo_sizes"
 >;
 
+export type UserSortFields = SortFields<
+  SanitizedUser,
+  "created_at" | "updated_at" | "name"
+>;
+
 // endpoint request types
-export interface UserFetchList extends PaginationParams {
+export interface UserFetchList extends PaginationSortParams<UserSortFields> {
   search?: string;
   role?: Role;
 }

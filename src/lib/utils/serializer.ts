@@ -1,4 +1,4 @@
-import { PaginationResponse } from "./pagination";
+import { PaginationSortResponse } from "./pagination";
 
 export const getSerializers = <T, R, A extends unknown[]>(
   transformer: (data: T, ...args: A) => R
@@ -10,7 +10,7 @@ export const getSerializers = <T, R, A extends unknown[]>(
   return {
     single,
     multiple,
-    paginated: (data: PaginationResponse<T>, ...args: A) => ({
+    paginated: (data: PaginationSortResponse<T>, ...args: A) => ({
       ...data,
       list: multiple(data.list, ...args),
     }),

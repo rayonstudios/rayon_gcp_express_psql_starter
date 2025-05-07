@@ -1,6 +1,6 @@
 import { APIResponse, ExReq } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
-import { PaginationResponse } from "#/src/lib/utils/pagination";
+import { PaginationSortResponse } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { statusConst } from "#/src/lib/utils/status";
 import {
@@ -55,7 +55,7 @@ export class PostController extends Controller {
   @Get("/")
   public async postFetchList(
     @Queries() query: PostFetchList
-  ): Promise<APIResponse<PaginationResponse<PostType>>> {
+  ): Promise<APIResponse<PaginationSortResponse<PostType>>> {
     const res = await postService.fetchList(query);
     return toResponse({
       data: postSerializer.paginated(res),

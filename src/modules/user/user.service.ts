@@ -1,4 +1,4 @@
-import { paginatedQuery } from "#/src/lib/utils/pagination";
+import { paginatedSortQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { withSearch } from "#/src/lib/utils/search";
 import { omit } from "lodash";
@@ -31,7 +31,7 @@ async function fetchList(filters?: UserFetchList) {
 
   if (filters?.role) query!.where = { role: filters.role };
 
-  const res = await paginatedQuery<User>("users", query, filters);
+  const res = await paginatedSortQuery<User>("users", query, filters);
   return res;
 }
 
