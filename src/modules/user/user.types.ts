@@ -33,6 +33,6 @@ export interface UserFetchList extends PaginationParams {
   role?: Role;
 }
 
-export type UserCreate = Expand<Optional<UserMutable, "bio">>;
+export type UserCreate = Expand<Optional<UserMutable, "bio" | "photo">>;
 
 export type UserUpdate = Partial<Omit<UserMutable, "email">>;

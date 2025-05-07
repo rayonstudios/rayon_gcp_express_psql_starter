@@ -30,7 +30,7 @@ import {
 export class FileController extends Controller {
   @Post("/")
   @Security("jwt")
-  public async fileCreate(
+  public async fileSave(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: ExReq,
     @FormField() img_sizes?: string

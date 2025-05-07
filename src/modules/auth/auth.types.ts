@@ -1,5 +1,5 @@
 import { Role } from "#/src/lib/utils/roles";
-import { SanitizedUser, UserCreate } from "#/src/modules/user/user.types";
+import { SanitizedUser } from "#/src/modules/user/user.types";
 
 export type AuthUser = {
   id: string;
@@ -7,12 +7,17 @@ export type AuthUser = {
   role: Role;
 };
 
+export type AuthLoginResponse = {
+  user: SanitizedUser;
+  accessToken: string;
+  refreshToken: string;
+};
+
+// endpoint request types
 export type AuthLogin = {
   email: string;
   password: string;
 };
-
-export type AuthSignup = Omit<UserCreate, "role"> & { password: string };
 
 export type AuthVerifyEmail = {
   otp: string;
@@ -33,10 +38,4 @@ export type AuthResetPass = {
 export type AuthChangePass = {
   oldPassword: string;
   newPassword: string;
-};
-
-export type AuthLoginResponse = {
-  user: SanitizedUser;
-  accessToken: string;
-  refreshToken: string;
 };

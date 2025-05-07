@@ -9,7 +9,6 @@ export type PostUnlinked = Expand<
 >;
 type PostMutable = Omit<PrismaEntityMutable<PostUnlinked>, "views" | "slug">;
 
-// endpoint response types
 export type PostRaw = PostUnlinked & { author: User };
 
 export type Post = Expand<PostUnlinked & { author: SanitizedUser }>;
