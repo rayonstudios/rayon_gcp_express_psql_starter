@@ -9,7 +9,9 @@ export enum SortOrder {
   Desc = "desc",
 }
 
-export type PaginationSortParams<T> = {
+export type DefaultSortFields = "created_at" | "updated_at";
+
+export type PaginationSortParams<T = DefaultSortFields> = {
   page?: number;
   limit?: number;
   sortField?: T;

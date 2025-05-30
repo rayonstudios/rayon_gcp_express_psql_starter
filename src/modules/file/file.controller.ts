@@ -26,7 +26,7 @@ import {
 } from "./file.types";
 
 @Route("files")
-@Tags("Files")
+@Tags("File")
 export class FileController extends Controller {
   @Post("/")
   @Security("jwt")

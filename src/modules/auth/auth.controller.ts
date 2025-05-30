@@ -116,12 +116,14 @@ export class AuthController extends Controller {
       role: Role.USER,
     });
 
-    await fileService.resizeImg(photoUrl, {
-      model: "users",
-      record_id: user.id,
-      img_field: "photo",
-      sizes: ["small", "medium"],
-    });
+    if (photoUrl) {
+      await fileService.resizeImg(photoUrl, {
+        model: "users",
+        record_id: user.id,
+        img_field: "photo",
+        sizes: ["small", "medium"],
+      });
+    }
 
     const otp = await otpService.create(user.email);
 

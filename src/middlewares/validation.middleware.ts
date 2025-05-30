@@ -4,15 +4,12 @@ import { statusConst } from "#/src/lib/utils/status";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
-type RoleValidation<T extends z.ZodRawShape> = {
-  schema: z.ZodObject<T>;
+type RoleValidation = {
+  schema: z.ZodTypeAny;
   roles: Role[];
 };
 
-export function validateData<T extends z.ZodRawShape>(
-  schema: z.ZodObject<T>,
-  isBody: boolean = true
-) {
+export function validateData(schema: z.ZodTypeAny, isBody: boolean = true) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const { error } = schema.safeParse(isBody ? req.body : req.query);
 
@@ -24,8 +21,8 @@ export function validateData<T extends z.ZodRawShape>(
   };
 }
 
-export function validateByRole<T extends z.ZodRawShape>(
-  validations: RoleValidation<T>[],
+export function validateByRole(
+  validations: RoleValidation[],
   isBody: boolean = true
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {

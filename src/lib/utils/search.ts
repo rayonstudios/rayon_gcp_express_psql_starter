@@ -1,14 +1,14 @@
 import { GenericObject } from "../types/utils";
 
-export const withSearch = (
+export const withSearch = <T>(
   query: any,
-  fields: string[],
+  fields: (keyof T)[],
   searchTerm: string
 ) => {
   const newQuery = { ...query };
   newQuery.where = {
     OR: fields.map((field) => {
-      const fieldParts = field.split(".");
+      const fieldParts = (field as string).split(".");
       let nestedQuery: GenericObject = {
         contains: searchTerm,
         mode: "insensitive",
