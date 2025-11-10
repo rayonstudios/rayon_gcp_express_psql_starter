@@ -333,7 +333,7 @@ export class AuthController extends Controller {
     const { id } = getReqUser(req);
 
     const user = await userService.fetch(id);
-    if (!user) {
+    if (!user || !user.email_verified) {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
     }
