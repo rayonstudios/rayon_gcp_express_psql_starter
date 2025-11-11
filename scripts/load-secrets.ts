@@ -1,5 +1,5 @@
 import fs from "fs";
-import { fetchSecrets, isAppEngine } from "./helpers";
+import { fetchSecrets, isCloudRun } from "./helpers";
 
 if (fs.existsSync("./.env.infisical")) {
   const content = fs.readFileSync("./.env.infisical", "utf-8").trim();
@@ -15,7 +15,7 @@ if (fs.existsSync("./.env.infisical")) {
     process.env.ENV ?? process.env.NODE_ENV ?? "dev"
   );
 
-  if (!isAppEngine()) {
+  if (!isCloudRun()) {
     const secret = secrets.find(
       (secret) => secret.secretKey === "GOOGLE_APPLICATION_CREDENTIALS"
     );
@@ -37,4 +37,6 @@ if (fs.existsSync("./.env.infisical")) {
     ),
     { flag: "w" }
   );
+
+  console.log("Secrets loaded successfully in .env file");
 })();

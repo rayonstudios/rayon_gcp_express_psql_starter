@@ -35,7 +35,7 @@ export async function fetchSecrets(env: string) {
 
   return secrets.filter(
     (secret) =>
-      !(secret.secretKey === "GOOGLE_APPLICATION_CREDENTIALS" && isAppEngine())
+      !(secret.secretKey === "GOOGLE_APPLICATION_CREDENTIALS" && isCloudRun())
   );
 }
 
@@ -47,8 +47,8 @@ export function importSecrets() {
   };
 }
 
-export function isAppEngine() {
-  return process.env.GAE_ENV === "standard";
+export function isCloudRun() {
+  return process.env.K_SERVICE && process.env.K_REVISION;
 }
 
 export function isPRMerged(commitMsg: string, fromBranch: string) {
@@ -58,7 +58,12 @@ export function isPRMerged(commitMsg: string, fromBranch: string) {
   ).test(commitMsg);
 }
 
-export const getBEUrl = (env: string) =>
-  env === "dev"
-    ? "https://compact-flash-306512.el.r.appspot.com"
-    : "https://compact-flash-306512.el.r.appspot.com";
+export const getBEUrl = (env: string) => {
+  if (env === "production") {
+    return "https://crackuni-be-prod-617502051339.us-central1.run.app/api/v1";
+  }
+  if (env === "test") {
+    return "https://crackuni-be-test-617502051339.us-central1.run.app/api/v1";
+  }
+  return "https://crackuni-be-dev-617502051339.us-central1.run.app/api/v1";
+};

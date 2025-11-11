@@ -5,12 +5,13 @@
   "scripts": {
     "tsoa": "tsoa spec-and-routes",
     "setup": "npm run env:fetch && npm run prisma:pull && npm run schema-transform && npm run prisma:format && npm run prisma:generate && npm run tsoa",
-    "build": "npm run setup && tsc && node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/scripts/load-secrets.js",
+    "build": "npm run setup && tsc && tsc-alias",
     "local": "npm run setup && concurrently \"nodemon server.ts\" \"nodemon -x tsoa spec-and-routes\"",
     "dev": "cross-env NODE_ENV=dev npm run local",
+    "test": "cross-env NODE_ENV=test npm run local",
     "prod": "cross-env NODE_ENV=production npm run local",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register ./dist/server.js",
+    "start": "node ./dist/server.js",
     "deploy": "npm run build && gcloud app deploy",
     "watch:types": "tsc -w",
     "env:fetch": "ts-node ./scripts/load-secrets",
@@ -85,6 +86,7 @@
     "nodemon": "^3.1.7",
     "prettier": "3.3.3",
     "prisma": "5.20.0",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.6.3"
   },
   "lint-staged": {

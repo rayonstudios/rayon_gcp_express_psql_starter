@@ -1,5 +1,5 @@
 import { ExReq } from "#/src/lib/types/misc";
-import { getIp, isAppEngine } from "#/src/lib/utils";
+import { getIp, isCloudRun } from "#/src/lib/utils";
 import { User } from "#/src/modules/user/user.types";
 import bcrypt from "bcrypt";
 import { verify } from "hcaptcha";
@@ -57,7 +57,7 @@ async function verifyPassword(password: string, hash: string) {
 
 async function verifyHcaptcha(hcaptcha_token: string, req: ExReq) {
   if (
-    !isAppEngine() ||
+    !isCloudRun() ||
     !process.env.HCAPTCHA_SECRET ||
     !process.env.HCAPTCHA_SITE_KEY
   )
