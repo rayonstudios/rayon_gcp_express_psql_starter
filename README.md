@@ -1,86 +1,765 @@
-# Rayon GCP Express PSQL Starter
+# Rayon GCP Express PostgreSQL Starter
 
-Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffold backend projects quickly with a wide range of pre-configured features, built-in best practices, and "batteries included." It leverages Google Cloud Platform for deployment and Prisma for database management, allowing you to focus on building functionality.
+A production-ready, batteries-included Express.js starter kit built for rapid backend development. This opinionated starter scaffolds your project with pre-configured authentication, notifications, background jobs, file management, and seamless GCP deployment—so you can focus on building features, not infrastructure.
 
-[Live Demo](https://be.starters.rayonstudios.com/)
+**[Live Demo](https://be.starters.rayonstudios.com/)** | **[API Documentation](https://be.starters.rayonstudios.com/docs)**
+
+---
+
+## Table of Contents
+
+- [Why This Starter?](#why-this-starter)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Architecture Overview](#architecture-overview)
+- [Prerequisites](#prerequisites)
+- [Installation and Setup](#installation-and-setup)
+- [Available Scripts](#available-scripts)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [Project Structure](#project-structure)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+
+---
+
+## Why This Starter?
+
+Building a production-ready backend from scratch involves countless decisions and boilerplate. This starter eliminates that overhead by providing:
+
+- **Ready-to-use authentication** with JWT, RBAC, and email verification
+- **Multi-channel notifications** (in-app, push, email) out of the box
+- **Background job processing** with Google Cloud Tasks
+- **Auto-generated API documentation** that stays in sync with your code
+- **Three-environment deployment** (dev, test, prod) via GitHub Actions
+- **Type-safe APIs** with TypeScript, TSOA, and Zod validation
+- **Best practices baked in** from folder structure to error handling
+
+Perfect for developers who want to ship features fast without compromising on code quality or scalability.
+
+---
 
 ## Tech Stack
 
-- **TypeScript** (NodeJS)
-- **PostgreSQL** (via Prisma ORM)
-- **Express.js**
-- **Google App Engine**
-- **Google Cloud Storage**
-- **Infisical**
-- **tsoa**
-- **zod**
-- **Morgan**
-- **Brevo**
+### Core Framework
+- **TypeScript** - Type-safe JavaScript
+- **Node.js 20** - Runtime environment
+- **Express.js** - Web framework
+- **TSOA** - TypeScript-based OpenAPI generator
+- **Zod** - Schema validation
+
+### Database & ORM
+- **PostgreSQL** - Relational database
+- **Xata** - Managed PostgreSQL hosting with built-in search and analytics
+- **Prisma** - Modern ORM with type safety
+
+### Google Cloud Platform (GCP - default region: us-east1)
+- **Cloud Run** - Serverless container platform
+- **Cloud Tasks** - Distributed task queue for background jobs
+- **Cloud Storage** - Object storage for files and images
+- **Artifact Registry** - Container image registry
+- **Cloud Build** - Docker image building with caching
+
+### Authentication & Security
+- **JWT** - JSON Web Tokens for stateless authentication
+- **bcrypt** - Password hashing
+- **hCaptcha** - Bot protection for public endpoints
+- **API Keys** - Service-to-service authentication
+
+### Notifications & Messaging
+- **Firebase Cloud Messaging (FCM)** - Push notifications
+- **Brevo (SendinBlue)** - Transactional email service
+- **Firestore** - As a secondary real-time database
+
+### File Management
+- **Multer** - File upload middleware
+- **Sharp** - High-performance image processing
+- **Firebase Storage** - Cloud-based file storage
+
+### Development Tools
+- **Infisical** - Secret management and environment variables
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Husky** - Git hooks
+- **Nodemon** - Live code reloading
+- **Morgan** - HTTP request logging
+
+---
 
 ## Features
 
-- 🔄 **Shared Types for Models & Request Validation**: Ensure consistent data types across the entire stack by sharing types between models and request validation.
-- 📚 **Automatic Swagger Docs**: Generate comprehensive and up-to-date OpenAPI documentation straight from your codebase with tsoa.
-- 🌐 **OpenAPI Specification**: Auto-generated OpenAPI JSON specification for seamless integration with API development tools and client SDKs.
-- 🔐 **Flexible Authentication**: Secure authentication and authorization using both JWT for user sessions and API keys for service-to-service communication.
-- 📜 **Request Validation with zod & tsoa**: Validate request data effortlessly using advanced schema validation with zod and TypeScript-based tsoa.
-- 📝 **Data Logging with Morgan**: Log incoming requests and responses for enhanced observability and debugging.
-- 🛡️ **Role-Based Access Control (RBAC)**: Manage user permissions and access levels through a robust role-based access control system.
-- 🧬 **Database Introspection with Prisma**: Seamlessly interact with PostgreSQL using Prisma's intuitive ORM and database introspection.
-- 🔄 **Automatic Schema Migration**: Automatically migrate database schemas using Xata CLI and GitHub Actions on PR merge.
-- 📧 **Pre-configured Email Client**: Easily send emails through Brevo with the built-in, ready-to-use email client.
-- 📂 **File Upload & Retrieval**: Handle file uploads and retrievals with multer and store them securely in Google Cloud Storage.
-- 🖼️ **Config-based Auto Image Resizing**: Automatically resize uploaded images in the background based on configurable presets and dimensions.
-- 🔄 **Live Code Reloading & Spec Generation**: Enjoy fast development cycles with live code reloading and on-the-fly API spec updates.
-- 🚀 **CI/CD for GCP App Engine Deployments**: Automated deployment pipelines using GitHub Actions for continuous integration and deployment to GCP.
-- 🔑 **Automatic Environment Variables with Infisical**: Simplify secret management and environment configuration using Infisical for secure variable injection.
-- 🔔 **Multi-channel Notifications**: Send notifications across in-app, push, and email channels with a unified API for user engagement.
-- 📊 **One-liner Pagination for Models**: Easily implement pagination for any database model with a single line of code.
-- 🔍 **One-liner Multi-Column Search**: Add multi-column search functionality to your modules with a single line of code using the `withSearch` higher-order function, mimicking full-text search capabilities.
-- 🛑 **Global Error Handling**: Catch and manage errors gracefully across your entire application with centralized error handling.
-- 🛡️ **hCaptcha Protection**: Secure sensitive public routes with hCaptcha to prevent automated abuse and spam.
-- ✅ **ESLint Integration**: Keep your codebase clean and consistent with linting rules enforced by ESLint.
-- 🌍 **Development & Production Environment Separation**: Seamlessly switch between dev and prod configurations with environment-specific settings.
-- 📁 **Feature-based Folder Structure**: Organize your project with a clear, scalable folder structure separating core logic by feature.
+### 🔐 Authentication & Security
+- **Flexible Authentication**: JWT access/refresh tokens + API keys for service-to-service communication
+- **Complete Auth Flow**: Signup, login, email verification (OTP), password reset, change password
+- **Role-Based Access Control (RBAC)**: User, admin, and super-admin roles with hierarchical permissions
+- **Token Management**: Refresh token versioning for multi-device sign-out
+- **hCaptcha Protection**: Bot prevention on sensitive public routes (auto-disabled in local dev)
+- **Secure Password Handling**: bcrypt hashing with automatic salting
 
-## Deployment
+### 🗄️ Database & ORM
+- **Database Introspection with Prisma**: Type-safe queries with auto-completion
+- **Automatic Schema Migration**: Migrate schemas between environments (dev, test, prod) via GitHub Actions
+- **Managed PostgreSQL**: Xata hosting
+- **Relationship Management**: Automatic foreign key handling and cascading deletes
 
-Deployment is managed through GitHub Actions, with automatic deployments to Google App Engine:
-- **main branch**: Deploys to production.
-- **dev branch**: Deploys to the development environment.
+### 📡 API & Documentation
+- **Automatic Swagger Docs**: OpenAPI 3.0 specification auto-generated from TypeScript code
+- **Interactive API Explorer**: Swagger UI at `/docs` for testing endpoints
+- **Shared Types for Models & Validation**: Single source of truth for data structures
+- **Request Validation**: Dual-layer validation with TSOA (TypeScript) and Zod (runtime)
+- **Global Error Handling**: Consistent error responses across all endpoints
+
+### 🔔 Notifications & Messaging
+- **Multi-channel Notifications**: Unified API for in-app, push (FCM), and email notifications
+- **Event-Based Notifications**: Pre-configured events (SIGN_UP, NEW_POST, GENERAL)
+- **User/Role Targeting**: Send notifications to specific users or all admins
+- **Unread Count Tracking**: Real-time unread notification counts
+- **Email Templates**: Pre-built templates for verification, password reset, and notifications
+- **Push Notification Management**: FCM token registration and device management
+
+### ⚙️ Background Processing
+- **Cloud Tasks Integration**: Reliable, scalable background job processing
+- **Job Status Tracking**: Monitor job progress in Firestore
+- **Built-in Job Types**:
+  - Image resizing with configurable dimensions
+  - Multi-channel notification sending
+- **Scheduled Jobs**: Delay job execution to a specific time
+- **Retry Handling**: Automatic retries with exponential backoff
+
+### 📂 File Management
+- **File Upload & Retrieval**: Secure uploads to Google Cloud Storage with signed URLs
+- **Auto Image Resizing**: Background processing to generate multiple sizes (thumbnail, small, medium, etc.)
+- **Image Optimization**: Sharp-based compression for optimal file sizes
+- **Multi-file Support**: Upload multiple files in a single request
+- **MIME Type Validation**: Ensure only allowed file types are uploaded
+
+### 🚀 Deployment & DevOps
+- **Three-Environment Architecture**: Separate dev, test, and production environments
+- **CI/CD with GitHub Actions**: Automated deployments on branch push
+- **Docker Multi-stage Builds**: Optimized images with layer caching
+- **Zero-Downtime Deployments**: Cloud Run managed rollouts
+- **Automatic Secret Injection**: Infisical integration for secure environment variables
+- **Health Check Endpoint**: Cloud Run health monitoring at `/health`
+
+### 🛠️ Developer Experience
+- **Live Code Reloading**: Instant feedback with Nodemon
+- **On-the-fly Spec Updates**: Swagger docs regenerate automatically
+- **TypeScript Path Aliases**: Clean imports with `#/` prefix
+- **One-liner Pagination**: Add pagination to any model with `paginatedSortQuery()`
+- **One-liner Multi-column Search**: Full-text-like search with `withSearch()`
+- **Serializers**: Transform database models to API responses
+- **Feature-based Folder Structure**: Organized by domain, not technical layer
+- **Pre-commit Hooks**: ESLint and Prettier run automatically on staged files
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                          Client Apps                            │
+│                   (Web, Mobile, Third-party)                    │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Google Cloud Run                             │
+│                   (Express.js API Server)                       │
+│  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐  │
+│  │  Auth Module   │  │  Post Module   │  │  File Module    │  │
+│  └────────────────┘  └────────────────┘  └─────────────────┘  │
+│  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐  │
+│  │  User Module   │  │ Notification   │  │  BG Jobs        │  │
+│  └────────────────┘  └────────────────┘  └─────────────────┘  │
+└───────────┬──────────────┬─────────────────┬──────────────┬────┘
+            │              │                 │              │
+            │              │                 │              │
+            ▼              ▼                 ▼              ▼
+┌──────────────────┐ ┌─────────────┐ ┌──────────────┐ ┌──────────────┐
+│  Xata/PostgreSQL │ │   Firebase  │ │ Cloud Tasks  │ │    Brevo     │
+│   (Main DB)      │ │  (Storage,  │ │ (Job Queue)  │ │   (Email)    │
+│  - Users         │ │   FCM, Jobs)│ │              │ │              │
+│  - Posts         │ │             │ │              │ │              │
+│  - Notifications │ │             │ │              │ │              │
+└──────────────────┘ └─────────────┘ └──────────────┘ └──────────────┘
+```
+
+### Request Flow
+1. **Client** sends request to Cloud Run endpoint
+2. **Express Router** matches route to TSOA-generated controller
+3. **Middleware** validates JWT/API key and request payload
+4. **Controller** processes business logic
+5. **Prisma ORM** queries PostgreSQL database via Xata
+6. **Response** serialized and returned to client
+
+### Background Job Flow
+1. Call `bgJobsService.create()` from any module to create a background job
+2. Job saved to **Firestore** with PENDING status
+3. **Cloud Tasks** queued with handler endpoint
+4. Task triggers `/bg-jobs/handler` with API key
+5. **Handler** processes job (e.g., resize image, send notification)
+6. Job status updated to SUCCESS/FAILED in Firestore
+
+### Notification Flow
+1. **Event trigger** (e.g., user signup) calls `notificationService.trigger()`
+2. Notification saved to **PostgreSQL** (in-app)
+3. **Background job** created for async processing
+4. Job sends **FCM push** to user devices
+5. Job sends **email** via Brevo
+6. User unread count incremented
+
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following set up:
+
+### Required Accounts & Services
+
+#### 1. Google Cloud Platform (GCP)
+- **GCP Project** with billing enabled
+- **Service Account** with the following IAM roles:
+  - Cloud Run Admin
+  - Cloud Build Editor
+  - Artifact Registry Writer
+  - Cloud Tasks Admin
+  - Storage Admin
+  - Service Account User
+- **Enabled APIs**:
+  - Cloud Run API
+  - Cloud Build API
+  - Cloud Tasks API
+  - Cloud Storage API
+  - Artifact Registry API
+- **Resources to create**:
+  - Cloud Tasks queues for each environment to hand bg jobs
+  - Cloud Storage bucket for each environment with public access
+
+**Download service account JSON key** and save securely.
+
+#### 2. Xata Database
+- Create a [Xata account](https://xata.io)
+- Create a new database (PostgreSQL)
+- Note your **database URL** and **API key**
+- Region: `us-east-1` (recommended for low latency)
+
+#### 3. Firebase Project
+- Create a [Firebase project](https://console.firebase.google.com) (Use the already create GCP project above)
+- Enable **Cloud Messaging** (FCM) for push notifications
+- Create **Firestore** databaes in native mode for each environment
+
+#### 4. Infisical (Secret Management)
+- Create an [Infisical account](https://infisical.com)
+- Create a new project
+- Create three environments: `dev`, `test`, `production`
+- Generate **Machine Identity** credentials:
+  - Client ID
+  - Client Secret
+  - Project ID
+- Add all required environment variables (see [Environment Variables](#environment-variables))
+
+#### 5. Brevo (Email Service)
+- Create a [Brevo account](https://www.brevo.com) (formerly SendinBlue)
+- Generate an **API key**
+- Verify a sender email address
+- Create email templates for verification, password reset, user invitation and notification (if needed)
+
+#### 6. hCaptcha (Bot Protection)
+- Create an [hCaptcha account](https://www.hcaptcha.com)
+- Register a site and get:
+  - Site Key
+  - Secret Key
+
+#### 7. GitHub Repository
+- Fork or clone this repository
+- Add the following **repository secrets** (Settings > Secrets):
+  - `INFISICAL_CLIENT_ID`
+  - `INFISICAL_CLIENT_SECRET`
+  - `INFISICAL_PROJECT_ID`
+  - `GCP_SA` (full GCP service account JSON)
+
+### Local Development Requirements
+- **Node.js 20+** (LTS recommended)
+- **npm 10+** or **yarn**
+- **Git**
+
+---
 
 ## Installation and Setup
 
-1. Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd <repository-folder>
-    ```
-2. Create a .env.infisical file with the following variables:
-    ```bash
-    INFISICAL_CLIENT_ID=<your-infisical-client-id>
-    INFISICAL_CLIENT_SECRET=<your-infisical-client-secret>
-    INFISICAL_PROJECT_ID=<your-infisical-workspace-slug>
-    ```
-2. Install dependencies:
-    ```bash
-    npm i
-    ```
-3. Start the development server:
-    ```bash
-    npm run dev
-    ```
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/your-org/rayon-gcp-express-psql-starter.git
+cd rayon-gcp-express-psql-starter
+```
+
+### Step 2: Configure Infisical Secrets
+Create a `.env.infisical` file in the project root:
+```bash
+INFISICAL_CLIENT_ID=your-infisical-client-id
+INFISICAL_CLIENT_SECRET=your-infisical-client-secret
+INFISICAL_PROJECT_ID=your-infisical-project-id
+```
+
+**Important**: This file is gitignored. Never commit it to version control.
+
+### Step 3: Install Dependencies
+```bash
+npm install
+```
+
+### Step 4: Start Development Server
+```bash
+npm run dev
+```
+This script automatically fetches secrets from Infisical and generates a `.env` file with all environment variables from Infisical. This script also introspects your xata database and updates the schema.prisma file.
+
+The server will start on `http://localhost:3000` (or the port specified in your `.env` file).
+
+### Step 7: Access API Documentation
+Open your browser to:
+```
+http://localhost:3000/api/v1/docs
+```
+
+You'll see the interactive Swagger UI where you can test all endpoints.
+
+---
+
+## Available Scripts
+
+### Development
+```bash
+npm run dev          # Start development server with live reload (NODE_ENV=dev)
+npm run test         # Start test server (NODE_ENV=test)
+npm run prod         # Start production-like server (NODE_ENV=production)
+```
+
+### Build & Deploy
+```bash
+npm run build        # Build TypeScript to dist/ folder
+npm start            # Run production build (node dist/server.js)
+npm run setup        # Full setup: fetch env, pull schema, generate, tsoa
+```
+
+### Database
+```bash
+npm run prisma:pull          # Pull schema from Xata database
+npm run prisma:generate      # Generate Prisma Client
+npm run prisma:format        # Format schema.prisma file
+npm run schema-transform     # Transform Xata conventions to standard naming
+npm run schema:initialize    # Initialize new schema
+npm run sync-xata-schema     # Sync schema changes with Xata
+```
+
+### Code Generation
+```bash
+npm run tsoa         # Generate TSOA routes and Swagger spec
+```
+
+### Environment
+```bash
+npm run env:fetch    # Fetch secrets from Infisical to .env
+npm run env:replace  # Replace env variables in config files
+```
+
+### Code Quality
+```bash
+npm run lint                 # Run ESLint
+npm run prettier:check       # Check code formatting
+npm run prettier:write       # Fix code formatting
+```
+
+---
+
+## Environment Variables
+
+The following environment variables must be configured in Infisical for each environment (dev, test, production):
+
+### GCP Configuration
+```bash
+GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+GOOGLE_APPLICATION_CREDENTIALS=./service_account.json
+STORAGE_BUCKET=your-unique-bucket-name
+GENERAL_TASKS_QUEUE=projects/your-project/locations/us-east1/queues/general
+```
+
+### Database
+```bash
+DATABASE_URL=postgresql://your-xata-url
+XATA_API_KEY=xau_your-api-key
+```
+
+### Authentication
+```bash
+ACCESS_TOKEN_SECRET=your-long-random-secret
+ACCESS_TOKEN_LIFE=8h
+REFRESH_TOKEN_SECRET=your-long-random-secret
+REFRESH_TOKEN_LIFE=30d
+API_KEY_SECRET=your-internal-api-key
+```
+
+### Security
+```bash
+HCAPTCHA_SECRET=your-hcaptcha-secret
+HCAPTCHA_SITE_KEY=your-hcaptcha-site-key
+```
+
+### Email
+```bash
+BREVO_API_KEY=xkeysib-your-api-key
+FROM_EMAIL=noreply@yourdomain.com
+```
+
+### OTP
+```bash
+OTP_LIFE=30  # OTP expiration in minutes
+```
+
+### Firebase
+```bash
+FIRESTORE_DB_ID=your-firestore-db-id
+```
+
+### Environment
+```bash
+NODE_ENV=env-alias  # dev | test | production
+```
+
+**Security Note**: Never commit `.env` or `.env.infisical` files. Use Infisical for all environments.
+
+---
+
+## Deployment
+
+### Architecture
+This starter uses a **three-environment deployment strategy**:
+
+| Environment | Branch | Cloud Run Service | Purpose |
+|-------------|--------|-------------------|---------|
+| **Production** | `main` | `rayon-gcp-express-psql-starter-prod` | Live user-facing environment |
+| **Development** | `dev` | `rayon-gcp-express-psql-starter-dev` | Staging for pre-production verification |
+| **Test** | `test` | `rayon-gcp-express-psql-starter-test` | Testing environment to deploy and test unfinished features |
+
+All services run on **GCP Cloud Run** in the **us-east1** region.
+
+### Automated Deployment via GitHub Actions
+
+#### How It Works
+1. Push code to `main`, `dev`, or `test` branch or trigger manually
+2. GitHub Actions workflow triggers:
+   - Loads secrets from Infisical
+   - Authenticates with GCP
+   - Builds Docker image using Cloud Build (with layer caching)
+   - Pushes image to Artifact Registry
+   - Deploys to Cloud Run
+   - Automatically migrates database schema (if PR merge detected)
+
+#### Manual Workflows
+Access via GitHub Actions tab:
+
+**Reload Secrets**: Redeploys existing Cloud Run service with updated Infisical secrets
+```
+Workflow: reload-secrets.yml
+Inputs: environment (dev, test, production)
+```
+
+**Migrate Database Schema**: Migrate schema between environments
+```
+Workflow: migrate-branch.yml
+Inputs: baseBranch, targetBranch, lastCommonMigrationId (optional)
+```
+
+### Cloud Run Configuration
+
+#### Production (main branch)
+- **Memory**: 1Gi
+- **CPU**: 1
+- **Max instances**: 20
+- **Min instances**: 0 (scales to zero)
+- **Concurrency**: 100 requests per container
+
+#### Development/Test
+- **Memory**: 512Mi
+- **CPU**: 1
+- **Max instances**: 5
+- **Min instances**: 0
+
+All environments use:
+- **Port**: 8080
+- **Timeout**: 3600s (1 hour)
+- **Execution environment**: gen2
+- **Authentication**: allow-unauthenticated (public access)
+- **Session affinity**: enabled
+
+### Monitoring Deployments
+- **Cloud Run Logs**: View in [GCP Console](https://console.cloud.google.com/run)
+- **GitHub Actions**: Check workflow runs for build/deploy status
+- **Health Check**: `https://your-service-url.run.app/api/v1/health`
+
+---
+
+## Project Structure
+
+```
+rayon-gcp-express-psql-starter/
+├── .github/workflows/         # CI/CD pipelines for deployment
+├── .husky/                    # Git hooks (pre-commit linting)
+├── .xata/                     # Xata database configuration
+├── prisma/                    # Prisma ORM schema
+│   └── schema.prisma          # Database models and relations
+├── scripts/                   # Build and deployment automation scripts
+│   ├── load-secrets-ci.ts     # Fetch Infisical secrets in CI
+│   ├── schema-transform.ts    # Transform Xata naming conventions
+│   ├── xata-migration.ts      # Migrate schemas between environments
+│   └── ...                    # Other utility scripts
+├── src/
+│   ├── app.ts                 # Express app configuration
+│   ├── server.ts              # Entry point (HTTP server)
+│   ├── lib/                   # Reusable, feature-independent code
+│   │   ├── cloud-task/        # Google Cloud Tasks client
+│   │   ├── firebase/          # Firebase Admin SDK setup
+│   │   ├── mail/              # Brevo email client
+│   │   ├── otp/               # OTP generation and verification
+│   │   ├── types/             # Shared TypeScript types
+│   │   ├── utils/             # Utility functions (pagination, search, etc.)
+│   │   └── constants.ts       # Application constants
+│   ├── middlewares/           # Express middleware
+│   │   ├── auth.middleware.ts # JWT and API key authentication
+│   │   ├── error.middleware.ts # Global error handler
+│   │   └── validation.middleware.ts # Request validation
+│   └── modules/               # Feature modules (domain-driven)
+│       ├── auth/              # Authentication and authorization
+│       │   ├── auth.controller.ts
+│       │   ├── auth.service.ts
+│       │   ├── auth.types.ts
+│       │   └── auth.serializer.ts
+│       ├── user/              # User management
+│       ├── profile/           # User profiles
+│       ├── post/              # Posts module (example entity)
+│       ├── file/              # File upload and storage
+│       ├── notification/      # Multi-channel notifications
+│       ├── bg-jobs/           # Background job processing
+│       └── misc/              # Health check, Swagger docs
+├── Dockerfile                 # Multi-stage Docker build
+├── cloudbuild.yaml            # GCP Cloud Build configuration
+├── tsoa.json                  # TSOA API generator config
+├── tsconfig.json              # TypeScript configuration
+├── package.json               # Dependencies and scripts
+└── README.md                  # This file
+```
+
+### Module Structure
+Each feature module follows a consistent pattern:
+```
+module-name/
+├── module-name.controller.ts  # TSOA controller (routes + validation)
+├── module-name.service.ts     # Business logic
+├── module-name.types.ts       # TypeScript types
+└── module-name.serializer.ts  # Response transformers
+```
+
+This structure promotes:
+- **Separation of concerns**: Controllers handle HTTP, services handle logic and are reusable
+- **Testability**: Services can be tested independently
+- **Type safety**: Shared types ensure consistency
+- **Maintainability**: Related code stays together
+
+---
 
 ## Best Practices
-- Use **kebab-case** for file and folder names.
-- Reusable, feature-independent code should be placed in the `lib` folder.
-- Feature-dependent code goes under the `modules` folder, while middlewares are under the `middlewares` folder.
-- **Snake case** should be used for database field names.
-- Foreign key names should strictly be in the format `<name>_id` (ex: user_id) to allow schema transform scripts to work correctly.
-- Use `statusConst` to define HTTP status codes and messages, rather than hardcoding them.
-- Basic request validation can be handled by tsoa through TypeScript, but use zod for advanced validation (e.g., email format, min/max constraints).
-- Exported module types that are mean to be used as input/output types of a controller method, should be wrapped inside the `Expand` utility type as a workaround for tsoa's inability to handle complex nested types.
-- Files in **scripts folder should not have any external dependencies**, as they are meant to run prior to dependencies installation.
+
+### Code Style
+- Use **kebab-case** for file and folder names (e.g., `user-profile.service.ts`)
+- Use **PascalCase** for type names (e.g., `UserProfile`)
+- Use **camelCase** for variable and function names (e.g., `getUserProfile`)
+- Use **snake_case** for database field names (e.g., `user_id`, `created_at`)
+
+### Project Organization
+- **Reusable, feature-independent code** → `src/lib/` folder
+- **Feature-specific code** → `src/modules/` folder
+- **Middleware** → `src/middlewares/` folder
+- **Types meant for multiple modules** → `src/lib/types/` folder
+
+### Database Design
+- Foreign key names **must** follow the format `<name>_id` (e.g., `user_id`, `author_id`)
+  - This convention allows schema transform scripts to auto-detect relationships
+- Use `snake_case` for all field names
+- Leverage Prisma relations for type-safe joins
+
+### API Development
+- Use **`statusConst`** object for HTTP status codes instead of hardcoding numbers
+- Basic validation → rely on TSOA's TypeScript-based validation
+- Advanced validation (email format, min/max, regex) → use Zod schemas
+- Wrap complex nested types in the **`Expand`** utility type for TSOA compatibility
+- Always serialize database models before returning (remove sensitive field, transform objects)
+
+### Authentication
+- Use **`@Security("jwt")`** for user-authenticated routes
+- Use **`@Security("api_key")`** for internal service-to-service routes
+- Specify required roles via TSOA scopes: `@Security("jwt", ["admin"])`
+
+### Background Jobs
+- Use background jobs for:
+  - Long-running tasks (image processing, data exports)
+  - Heavy external API calls (ex: push notifications)
+  - Tasks that can tolerate eventual consistency
+
+### Notifications
+- **In-app notifications**: Always create for important events
+- **Push notifications**: Use for time-sensitive updates
+- **Email**: Use for critical account-related actions (verification, password reset)
+- Target specific users or roles, not all users, to avoid spam
+
+### Error Handling
+- Throw descriptive errors with appropriate HTTP status codes
+- Let the global error middleware handle uncaught internal errors (status code: 500) and validation errors (status code: 422)
+- Log errors for debugging
+
+### Security
+- **Never commit** `.env`, `.env.infisical`, or `service_account.json` files
+- Use hCaptcha on public endpoints prone to abuse
+- Validate and sanitize all user inputs
+- Use parameterized queries (Prisma does this automatically)
+
+### Scripts Folder
+- Files in **`scripts/`** should have **no external dependencies** (node built-ins only)
+- Scripts run before `npm install` in some contexts (e.g., Docker build)
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Cannot find module '#/...'"
+**Cause**: TypeScript path aliases not resolved.
+
+**Solution**:
+```bash
+npm run build  # Rebuilds with alias resolution
+```
+
+#### "Prisma Client not generated"
+**Cause**: Prisma Client out of sync with schema.
+
+**Solution**:
+```bash
+npm run prisma:generate
+```
+
+#### "Database connection failed"
+**Cause**: Invalid `DATABASE_URL` or Xata database offline.
+
+**Solution**:
+1. Verify `DATABASE_URL` in `.env`
+2. Check Xata dashboard for database status
+3. Ensure Xata API key is valid
+
+#### "Firebase initialization failed"
+**Cause**: Missing or invalid `service_account.json`.
+
+**Solution**:
+1. Ensure `service_account.json` exists in project root
+2. Verify JSON structure is valid
+3. Re-download from Firebase Console if needed
+
+#### "Cloud Tasks create failed"
+**Cause**: Invalid queue name or insufficient permissions.
+
+**Solution**:
+1. Verify `GENERAL_TASKS_QUEUE` format: `projects/PROJECT_ID/locations/REGION/queues/QUEUE_NAME` in infisical stored secret
+2. Ensure service account has "Cloud Tasks Admin" role
+3. Confirm queue exists in GCP Console
+
+#### "hCaptcha validation failed"
+**Cause**: Invalid site key or secret.
+
+**Solution**:
+1. Verify `HCAPTCHA_SECRET` and `HCAPTCHA_SITE_KEY` in Infisical
+2. Check hCaptcha dashboard for site status
+3. Ensure frontend sends correct `hCaptchaToken`
+
+#### "Swagger docs not updating"
+**Cause**: TSOA routes not regenerated.
+
+**Solution**:
+1. Make sure there are no typescript errors
+2. Sometimes there's no typescript error, but still a tsoa error. If you are using a complex nested type in a controller, make sure to wrap inside Expand type utility.
+
+#### GitHub Actions deployment fails
+**Cause**: Missing secrets or incorrect GCP configuration.
+
+**Solution**:
+1. Verify all GitHub secrets are set (see [Prerequisites](#prerequisites))
+2. Check workflow logs for specific error
+3. Ensure GCP service account has required IAM roles
+4. Confirm Cloud Run service name matches workflow config
+
+### Getting Help
+- **Issues**: [GitHub Issues](https://github.com/your-org/rayon-gcp-express-psql-starter/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/rayon-gcp-express-psql-starter/discussions)
+- **Documentation**: Check the [Live Demo](https://be.starters.rayonstudios.com/docs) for API examples
+
+---
 
 ## Roadmap
-- [ ] Add unit tests
+
+### Improvements
+- [ ] **Add unit tests**: Jest + Supertest for comprehensive test coverage
+- [ ] **Add rate limiting**: Protect endpoints from abuse with `express-rate-limit`
+- [ ] **Add database seeding**: Seed scripts for local development
+- [ ] **Add IAC**: Auto provision new environments / projects
+- [ ] **Add request logging**: Structured logging with request IDs for tracing
+- [ ] **Disaster Recovery**: Automated backup and restore procedures for PostgreSQL and Firestore with point-in-time recovery
+
+**Want to contribute?** See [Contributing](#contributing) below!
+
+---
+
+## Contributing
+
+We welcome contributions from the community! Whether it's bug fixes, new features, or documentation improvements, your help makes this starter better for everyone.
+
+### How to Contribute
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+3. **Make your changes**: Follow the [Best Practices](#best-practices) above
+4. **Test thoroughly**: Ensure all existing functionality still works
+5. **Commit with descriptive messages**: `git commit -m "feat: add rate limiting middleware"`
+6. **Push to your fork**: `git push origin feature/your-feature-name`
+7. **Open a Pull Request**: Describe your changes and link any related issues
+
+### Code of Conduct
+- Follow the existing code style and conventions
+- Write clear commit messages
+- Update documentation for any user-facing changes
+
+### Development Guidelines
+- Run `npm run lint` before committing
+- Ensure Prettier formatting is applied (`npm run prettier:write`)
+- Test changes in at least the `dev` environment before PR
+- Update the README if you add new features or change behavior
+
+### Reporting Issues
+Found a bug or have a feature request? [Open an issue](https://github.com/your-org/rayon-gcp-express-psql-starter/issues) with:
+- Clear description of the problem or feature
+- Steps to reproduce (for bugs)
+- Expected vs actual behavior
+- Your environment (Node version, OS, etc.)
+
+---
+
+## License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Acknowledgments
+
+Built with love by the [Rayon Studios](https://rayonstudios.com) team. Special thanks to all contributors.
+
+**Happy coding!** If this starter helped you ship faster, consider giving it a star ⭐ on GitHub.
