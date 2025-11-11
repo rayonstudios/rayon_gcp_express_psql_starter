@@ -17,14 +17,16 @@ async function generateTokens(user: User) {
   const accessToken = jwt.sign(
     { id: user.id, role: user.role, email: user.email },
     process.env.ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: process.env.ACCESS_TOKEN_LIFE,
-    }
+    { expiresIn: process.env.ACCESS_TOKEN_LIFE } as jwt.SignOptions
   );
+
   const refreshToken = jwt.sign(
-    { id: user.id, refresh_token_version: user.refresh_token_version },
+    {
+      id: user.id,
+      refresh_token_version: user.refresh_token_version ?? 0,
+    },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_LIFE }
+    { expiresIn: process.env.REFRESH_TOKEN_LIFE } as jwt.SignOptions
   );
   return { accessToken, refreshToken };
 }
