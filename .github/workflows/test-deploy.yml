@@ -8,7 +8,7 @@ on:
 
 env:
   REGION: us-east1
-  REPOSITORY: ${{ github.event.repository.name }}
+  REPOSITORY_RAW: ${{ github.event.repository.name }}
   SERVICE_NAME: ${{ github.event.repository.name }}-test
   SHA: ${{ github.sha }}
   NODE_ENV: test
@@ -31,6 +31,8 @@ jobs:
 
       - name: Set IMAGE_URL env variable
         run: |
+          REPOSITORY=$(echo "$REPOSITORY_RAW" | tr '_' '-')
+          echo "REPOSITORY=$REPOSITORY" >> $GITHUB_ENV
           echo "IMAGE_URL=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:$SHA" >> $GITHUB_ENV
           echo "CACHE_IMAGE=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:cache" >> $GITHUB_ENV
 
