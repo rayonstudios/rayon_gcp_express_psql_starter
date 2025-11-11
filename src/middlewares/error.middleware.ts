@@ -16,7 +16,7 @@ export const globalErrorHandler = (
   } else if (err.code === "LIMIT_FILE_SIZE") {
     res.status(statusConst.invalidData.code).json(
       toResponse({
-        error: "File size too large. Maximum allowed size is 30MB.",
+        error: "File size too large. Maximum allowed size is 32MB.",
       })
     );
   } else if (err.code === "LIMIT_FILE_COUNT") {
@@ -43,6 +43,7 @@ export const globalErrorHandler = (
   next(err);
 };
 
+// Use this if you want to throw specific API errors directly from non-controller code
 export const apiError = (code: number, message?: string) => {
   if (!message) {
     message =
