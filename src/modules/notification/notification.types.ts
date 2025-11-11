@@ -37,7 +37,7 @@ export enum NotificationEvent {
 }
 
 export type NotificationPayload = {
-  timestamp?: number;
+  timestamp?: Date;
 } & (
   | {
       event: NotificationEvent.GENERAL;

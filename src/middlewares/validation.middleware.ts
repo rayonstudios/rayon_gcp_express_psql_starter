@@ -4,25 +4,39 @@ import { statusConst } from "#/src/lib/utils/status";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
-type RoleValidation = {
-  schema: z.ZodTypeAny;
+type RoleValidation<T extends z.ZodRawShape> = {
+  schema: z.ZodObject<T>;
   roles: Role[];
 };
 
-export function validateData(schema: z.ZodTypeAny, isBody: boolean = true) {
+export function validateData<T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>,
+  isBody: boolean = true
+) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const { error } = schema.safeParse(isBody ? req.body : req.query);
+    const dataToValidate = isBody ? req.body : req.query;
+
+    const { error } = schema.safeParse(dataToValidate);
 
     if (error) {
+      // Provide more specific error message for missing body
+      let errorMessage = error.message;
+      if (
+        isBody &&
+        (!dataToValidate || Object.keys(dataToValidate).length === 0)
+      ) {
+        errorMessage = `Request body is missing or empty. Expected fields: ${Object.keys(schema.shape).join(", ")}. Original error: ${error.message}`;
+      }
+
       return res
         .status(statusConst.invalidData.code)
-        .json(toResponse({ error: error.message }));
+        .json(toResponse({ error: errorMessage }));
     } else next();
   };
 }
 
-export function validateByRole(
-  validations: RoleValidation[],
+export function validateByRole<T extends z.ZodRawShape>(
+  validations: RoleValidation<T>[],
   isBody: boolean = true
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {

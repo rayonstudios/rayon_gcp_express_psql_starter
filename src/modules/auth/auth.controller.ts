@@ -117,7 +117,7 @@ export class AuthController extends Controller {
     });
 
     if (photoUrl) {
-      await fileService.resizeImg(photoUrl, {
+      await fileService.triggerResizeImg(photoUrl, {
         model: "users",
         record_id: user.id,
         img_field: "photo",
@@ -330,12 +330,17 @@ export class AuthController extends Controller {
   public async authRefresh(
     @Request() req: ExReq
   ): Promise<APIResponse<Omit<AuthLoginResponse, "user">>> {
-    const { id } = getReqUser(req);
+    const { id, refresh_token_version } = getReqUser(req);
 
     const user = await userService.fetch(id);
-    if (!user) {
+    if (!user || !user.email_verified) {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
+    }
+
+    if (refresh_token_version !== user.refresh_token_version) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
     const tokens = await authService.generateTokens(user);

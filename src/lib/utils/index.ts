@@ -6,9 +6,9 @@ export const isDevEnv = () => {
   return process.env.NODE_ENV === "dev";
 };
 
-export const isAppEngine = () => {
-  return process.env.GAE_ENV === "standard";
-};
+export function isCloudRun() {
+  return process.env.K_SERVICE && process.env.K_REVISION;
+}
 
 export const toResponse = <T>({
   data,

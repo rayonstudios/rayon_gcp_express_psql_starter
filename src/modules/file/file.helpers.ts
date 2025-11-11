@@ -1,3 +1,4 @@
+import { firebase } from "#/src/lib/firebase/firebase.service";
 import { GenericObject } from "#/src/lib/types/utils";
 import { reduceToArea } from "#/src/lib/utils";
 import {
@@ -12,7 +13,7 @@ import { uniq } from "lodash";
 import os from "os";
 import path from "path";
 import sharp from "sharp";
-import fileService, { bucket } from "./file.service";
+import fileService from "./file.service";
 import { FileUpload, Resizeconfig } from "./file.types";
 
 export const IMAGE_SIZES = {
@@ -76,7 +77,7 @@ export async function getResizedImages(
         .toFile(resizedImgPath);
 
       //upload resized image
-      const uploadedFile = await bucket.upload(resizedImgPath, {
+      const uploadedFile = await firebase.bucket.upload(resizedImgPath, {
         destination: newName,
         metadata: {
           metadata,
@@ -123,9 +124,9 @@ export const uploadFile = async (file: FileUpload, overwrite: boolean) => {
 
   const existing = overwrite
     ? [false]
-    : await bucket.file(file.originalname).exists();
+    : await firebase.bucket.file(file.originalname).exists();
 
-  const uploadedFile = await bucket.upload(file.path, {
+  const uploadedFile = await firebase.bucket.upload(file.path, {
     destination: existing[0]
       ? renameDuplicateFile(file.originalname)
       : file.originalname,
@@ -137,7 +138,7 @@ export const uploadFile = async (file: FileUpload, overwrite: boolean) => {
 
   const url = await getDownloadUrl(uploadedFile);
   if (file.resizeConfig) {
-    await fileService.resizeImg(url, file.resizeConfig);
+    await fileService.triggerResizeImg(url, file.resizeConfig);
   }
 
   return url;

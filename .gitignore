@@ -9,4 +9,6 @@ routes.ts
 swagger.json
 .eslintcache
 
+# Xata files
 .xata/migrations*/
+.xatarc

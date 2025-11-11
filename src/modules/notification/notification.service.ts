@@ -1,9 +1,9 @@
-import cloudTaskService from "#/src/lib/cloud-task/cloud-task.service";
-import { BE_URL } from "#/src/lib/constants";
 import { GenericObject } from "#/src/lib/types/utils";
 import { paginatedSortQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { pick } from "lodash";
+import { bgJobsService } from "../bg-jobs/bg-jobs.service";
+import { BgJobType } from "../bg-jobs/bg-jobs.types";
 import { getRecepientsIds, sendNotification } from "./notification.helper";
 import {
   NotificationEvent,
@@ -14,15 +14,10 @@ import {
 
 const trigger = async (payload: NotificationPayload, ignoreErrors = true) => {
   try {
-    await cloudTaskService.add({
-      queuePath: process.env.GENERAL_TASKS_QUEUE!,
-      runsAt: payload.timestamp ?? new Date(),
-      url: `${BE_URL}/notifications/webhooks/handle-trigger?api_key=${process.env.API_KEY_SECRET}`,
-      httpMethod: "POST",
-      body: payload as any,
-      headers: {
-        "Content-Type": "application/json",
-      },
+    await bgJobsService.create({
+      job: BgJobType.SEND_NOTIFICATION,
+      payload,
+      scheduledFor: payload.timestamp,
     });
   } catch (error) {
     console.error("Error triggering notification", error);

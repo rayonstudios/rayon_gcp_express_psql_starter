@@ -25,7 +25,7 @@ export type FileDelete = {
   url: string;
 };
 
-export type FileWebhookHandleResize = {
+export type FileResizeImgInput = {
   url: string;
   resize_config: Resizeconfig;
 };

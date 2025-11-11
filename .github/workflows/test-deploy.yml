@@ -1,23 +1,23 @@
-name: Deploy to Google Cloud Run - Prod
+name: Deploy to Google Cloud Run - Test
 
 on:
   push:
     branches:
-      - main
+      - test
   workflow_dispatch:
 
 env:
   REGION: us-east1
   REPOSITORY: ${{ github.event.repository.name }}
-  SERVICE_NAME: ${{ github.event.repository.name }}-prod
+  SERVICE_NAME: ${{ github.event.repository.name }}-test
   SHA: ${{ github.sha }}
-  NODE_ENV: production
+  NODE_ENV: test
   INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
   INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
   INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
 jobs:
-  deploy_prod:
+  deploy_test:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,13 +33,6 @@ jobs:
         run: |
           echo "IMAGE_URL=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:$SHA" >> $GITHUB_ENV
           echo "CACHE_IMAGE=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:cache" >> $GITHUB_ENV
-
-      # Runs only if a PR merge from main to dev is detected through the commit message
-      - name: Migrate DB schema from dev to main
-        run: |
-          npx tsx ./scripts/xata-migration dev main
-        env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"
 
       - id: "auth"
         uses: "google-github-actions/auth@v2"
@@ -75,11 +68,11 @@ jobs:
             --service-account=$GOOGLE_CLOUD_PROJECT@appspot.gserviceaccount.com \
             --set-env-vars=NODE_ENV=$NODE_ENV \
             --cpu=1 \
-            --memory=1Gi \
+            --memory=512Mi \
             --concurrency=100 \
             --timeout=3600 \
             --min-instances=0 \
-            --max-instances=20 \
+            --max-instances=5 \
             --execution-environment=gen2 \
             --cpu-throttling \
             --session-affinity
