@@ -117,7 +117,7 @@ export class AuthController extends Controller {
     });
 
     if (photoUrl) {
-      await fileService.resizeImg(photoUrl, {
+      await fileService.triggerResizeImg(photoUrl, {
         model: "users",
         record_id: user.id,
         img_field: "photo",

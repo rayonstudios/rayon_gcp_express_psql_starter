@@ -47,9 +47,16 @@ const add = async ({ queuePath, runsAt, body, ...taskParams }: Params) => {
 const remove = (taskId: string) =>
   new CloudTasksClient().deleteTask({ name: taskId }, { maxRetries: 3 });
 
+const get = async (taskId: string) => {
+  const client = new CloudTasksClient();
+  const [task] = await client.getTask({ name: taskId });
+  return task;
+};
+
 const cloudTaskService = {
   add,
   remove,
+  get,
 };
 
 export default cloudTaskService;

@@ -138,7 +138,7 @@ export const uploadFile = async (file: FileUpload, overwrite: boolean) => {
 
   const url = await getDownloadUrl(uploadedFile);
   if (file.resizeConfig) {
-    await fileService.resizeImg(url, file.resizeConfig);
+    await fileService.triggerResizeImg(url, file.resizeConfig);
   }
 
   return url;
