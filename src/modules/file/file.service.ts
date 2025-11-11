@@ -11,7 +11,6 @@ admin.initializeApp({
 export const bucket = admin.storage().bucket();
 
 const fetch = async (fileUrl: string) => {
-  const bucket = admin.storage().bucket();
   const filePath = pathFromUrl(fileUrl);
 
   const [file] = await bucket.file(filePath).get();
