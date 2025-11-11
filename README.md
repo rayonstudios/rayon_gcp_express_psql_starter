@@ -17,6 +17,7 @@ A production-ready, batteries-included Express.js starter kit built for rapid ba
 - [Available Scripts](#available-scripts)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
+- [SDLC Workflow](#sdlc-workflow)
 - [Project Structure](#project-structure)
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
@@ -524,6 +525,213 @@ All environments use:
 - **Cloud Run Logs**: View in [GCP Console](https://console.cloud.google.com/run)
 - **GitHub Actions**: Check workflow runs for build/deploy status
 - **Health Check**: `https://your-service-url.run.app/api/v1/health`
+
+---
+
+## SDLC Workflow
+
+This section outlines the standard Software Development Lifecycle (SDLC) workflow for developing and deploying features in this project. Following this workflow ensures code quality, proper testing, and smooth collaboration across the team.
+
+### Workflow Overview
+
+The development workflow follows a **branch-based strategy** with three main environments:
+- **`test`** - Quick testing of under-development features
+- **`dev`** - Stable staging environment for pre-production verification
+- **`main`** - Production environment with live user-facing features
+
+### Step-by-Step Feature Development Workflow
+
+#### 1. Create Feature Branch
+Start by creating a new feature branch from the `dev` branch:
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feature/your-feature-name
+```
+
+**Branch naming conventions**:
+- `feature/feature-name` - New features
+- `fix/bug-description` - Bug fixes
+- `refactor/component-name` - Code refactoring
+- `docs/description` - Documentation updates
+
+#### 2. Create Xata Branch (If Schema Changes Required)
+If your feature involves database schema changes, create a corresponding Xata branch:
+
+```bash
+# Create Xata branch from dev
+npx xata branch create feature-your-feature-name --from dev
+```
+
+Update your `.env` or local environment to point to this Xata branch during development:
+```bash
+DATABASE_URL=your-xata-branch-url
+```
+
+**Important**: Always create Xata branches from `dev` to ensure they have the latest stable schema.
+
+#### 3. Create Draft Pull Request Early
+As soon as you have your first commit, push your code and create a **draft PR** against the `dev` branch:
+
+```bash
+git add .
+git commit -m "feat: initial implementation of feature X"
+git push origin feature/your-feature-name
+```
+
+Then on GitHub:
+- Create a Pull Request targeting the `dev` branch
+- Mark it as "Draft" if the feature is not ready for review
+- Add a clear description of what the feature does
+- Link any related issues
+
+**Benefits of early draft PRs**:
+- Enables early feedback from the team
+- Makes your work visible to others
+- Prevents merge conflicts by showing what you're working on
+- Allows CI/CD checks to run early
+
+#### 4. Deploy to Test Environment (Optional)
+If you want to test your feature in a deployed environment (recommended for integration testing):
+
+**Step 4a: Migrate Database Schema to Test (if applicable)**
+
+If your feature has schema changes, first migrate your Xata feature branch to the `test` branch:
+
+1. Go to **GitHub Actions** tab in your repository
+2. Select **"Migrate Xata Schema Between Branches"** workflow
+3. Click **"Run workflow"**
+4. Fill in the parameters:
+   - **Base branch**: `feature-your-feature-name` (your Xata branch)
+   - **Target branch**: `test`
+   - **Last common migration ID**: (leave empty unless you know the specific migration)
+5. Click **"Run workflow"** and wait for completion
+
+**Step 4b: Deploy Code to Test**
+
+Option A - Create PR against test:
+```bash
+# Create a PR from your feature branch to test and self-merge
+```
+
+Option B - Merge directly to test:
+```bash
+git checkout test
+git pull origin test
+git merge feature/your-feature-name
+git push origin test
+```
+
+**Important**: Code changes to the `test` branch will automatically deploy to the test environment via GitHub Actions.
+
+**About the Test Environment**:
+- Used for quickly testing under-development features
+- Multiple developers may deploy to test simultaneously
+- QA/testers may also use this environment for API testing
+- **It's okay if test breaks** - this is an experimental environment
+- Test environment is NOT meant to be stable
+
+#### 5. Code Review and Testing
+While your feature is deployed on test:
+
+1. **Test your feature** in the test environment
+2. **Request code review** by converting your draft PR to "Ready for review"
+3. Address any feedback from reviewers
+4. Ensure all tests pass
+5. Fix any issues found during testing
+
+**Testing checklist**:
+- [ ] Feature works as expected in test environment
+- [ ] No breaking changes to existing features
+- [ ] API documentation is updated (Swagger)
+- [ ] Error handling is implemented
+- [ ] Security considerations are addressed
+
+#### 6. Merge to Dev Branch
+Once your PR is **approved by a reviewer** and testing is successful:
+
+**Step 6a: Migrate Schema to Dev (BEFORE merging code)**
+
+If you made database schema changes, run the Xata migration workflow **before merging your code**:
+
+1. Go to **GitHub Actions** > **"Migrate Xata Schema Between Branches"**
+2. Run workflow with:
+   - **Base branch**: `feature-your-feature-name`
+   - **Target branch**: `dev`
+3. Wait for migration to complete successfully
+
+**Critical**: Schema changes must always be synced to the target branch **before** syncing code changes.
+
+**Step 6b: Merge Your PR**
+
+After schema migration is complete, merge your PR:
+```bash
+# Click "Merge Pull Request" on GitHub
+# or via CLI:
+git checkout dev
+git merge feature/your-feature-name
+git push origin dev
+```
+
+**Step 6c: Automatic Deployment**
+
+Code changes to `dev` will automatically deploy to the dev environment via GitHub Actions. Monitor the deployment in the Actions tab.
+
+#### 7. Keep Dev Stable
+The `dev` branch should always be in a **production-ready state**:
+
+- All features on `dev` should be fully tested
+- `dev` should be stable enough to promote to `main` at any time
+- Avoid pushing untested or experimental code to `dev`
+- Use `test` branch for experimentation
+
+#### 8. Promote to Production
+Periodically (or at defined release intervals), a **team lead** or **release manager** will promote `dev` to production:
+
+1. **Migrate schema from dev to main**:
+   - Run **"Migrate Xata Schema Between Branches"** workflow
+   - Base: `dev`, Target: `main`
+
+2. **Merge dev to main**:
+   ```bash
+   git checkout main
+   git pull origin main
+   git merge dev
+   git push origin main
+   ```
+
+3. **Monitor production deployment**:
+   - Check GitHub Actions for successful deployment
+   - Monitor Cloud Run logs for any issues
+   - Verify health check endpoint
+
+### Common Scenarios
+
+#### Working with Multiple Features Simultaneously
+If multiple developers are working on different features:
+- Each creates their own feature branch from `dev`
+- Each can deploy to `test` independently
+- The last merge to `test` will be deployed (expected behavior)
+- PRs to `dev` are merged sequentially after review
+
+#### Schema Conflicts
+If two features modify the same tables/fields:
+- Coordinate with other developers via draft PRs
+- Consider rebasing your feature branch on latest `dev`
+- Run schema migrations carefully, checking for conflicts
+- Use the `lastCommonMigrationId` parameter if needed
+
+Alternatively, use GitHub's "Revert" button on the merged PR.
+
+### Best Practices Summary
+
+- **Always create Xata branches for schema changes**
+- **Create draft PRs early** to enable collaboration
+- **Test in `test` environment** before merging to `dev`
+- **Migrate schema BEFORE merging code** to target branches
+- **Keep `dev` stable** and production-ready
+- **Communicate with the team** about test environment usage
+- **Monitor deployments** after merging to any environment branch
 
 ---
 
