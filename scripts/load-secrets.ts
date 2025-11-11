@@ -1,5 +1,5 @@
 import fs from "fs";
-import { fetchSecrets, isCloudRun } from "./helpers";
+import { createXataRcFile, fetchSecrets, isCloudRun } from "./helpers";
 
 if (fs.existsSync("./.env.infisical")) {
   const content = fs.readFileSync("./.env.infisical", "utf-8").trim();
@@ -14,6 +14,7 @@ if (fs.existsSync("./.env.infisical")) {
   const secrets = await fetchSecrets(
     process.env.ENV ?? process.env.NODE_ENV ?? "dev"
   );
+  createXataRcFile(secrets);
 
   if (!isCloudRun()) {
     const secret = secrets.find(
@@ -25,6 +26,9 @@ if (fs.existsSync("./.env.infisical")) {
         flag: "w",
       });
       secret.secretValue = "./service_account.json";
+      console.log(
+        "✓ Created service_account.json file with GCP service account credentials"
+      );
     }
   }
 

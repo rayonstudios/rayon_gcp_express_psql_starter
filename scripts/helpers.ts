@@ -1,4 +1,9 @@
+import * as fs from "fs";
+import * as path from "path";
+
 const infisicalBaseUrl = "https://app.infisical.com/api";
+
+type Secret = { secretKey: string; secretValue: string };
 
 async function getInfisicalToken() {
   const { accessToken } = await fetch(
@@ -18,25 +23,61 @@ async function getInfisicalToken() {
   return accessToken;
 }
 
+export function createXataRcFile(secrets: Secret[]) {
+  // Update .xatarc file with database URL
+  const databaseUrl = secrets.find(
+    (secret) => secret.secretKey === "DATABASE_URL"
+  )?.secretValue;
+  const xataWorkspaceSlug = secrets.find(
+    (secret) => secret.secretKey === "XATA_WORKSPACE_SLUG"
+  )?.secretValue;
+
+  if (databaseUrl && xataWorkspaceSlug) {
+    try {
+      // Extract region and database from DATABASE_URL
+      // Format: postgresql://user:pass@region.sql.xata.sh/database:branch?params
+      const match = databaseUrl.match(/@([^.]+)\.sql\.xata\.sh\/([^?]+)/);
+
+      if (match) {
+        const region = match[1];
+        const databaseWithBranch = match[2];
+        const database = databaseWithBranch.split(":")[0];
+
+        const xataConfig = {
+          databaseURL: `https://${xataWorkspaceSlug}.${region}.xata.sh/db/${database}`,
+        };
+
+        const xatarcPath = path.join(process.cwd(), ".xatarc");
+        fs.writeFileSync(xatarcPath, JSON.stringify(xataConfig, null, 2));
+
+        console.log("✓ Updated .xatarc file");
+      }
+    } catch (error) {
+      console.error("Failed to update .xatarc file:", error);
+    }
+  }
+}
+
 export async function fetchSecrets(env: string) {
   const accessToken = await getInfisicalToken();
 
-  const { secrets }: { secrets: { secretKey: string; secretValue: string }[] } =
-    await fetch(
-      `${infisicalBaseUrl}/v3/secrets/raw?workspaceId=${
-        process.env.INFISICAL_PROJECT_ID
-      }&environment=${env}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    ).then((res) => res.json());
+  const { secrets }: { secrets: Secret[] } = await fetch(
+    `${infisicalBaseUrl}/v3/secrets/raw?workspaceId=${
+      process.env.INFISICAL_PROJECT_ID
+    }&environment=${env}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  ).then((res) => res.json());
 
-  return secrets.filter(
+  const filteredSecrets = secrets.filter(
     (secret) =>
       !(secret.secretKey === "GOOGLE_APPLICATION_CREDENTIALS" && isCloudRun())
   );
+
+  return filteredSecrets;
 }
 
 export function importSecrets() {
