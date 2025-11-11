@@ -23,8 +23,8 @@
     "prettier:check": "prettier . --check",
     "prettier:write": "prettier . --write",
     "prepare": "husky install",
-    "schema:initialize": "ts-node ./scripts/schema-initialize",
-    "sync-xata-schema": "ts-node ./scripts/sync-xata-schema"
+    "schema:init": "cross-env NODE_ENV=production npm run env:fetch && ts-node ./scripts/xata-initialize",
+    "sync:migrations": "ts-node ./scripts/sync-migrations"
   },
   "keywords": [],
   "author": "",
