@@ -310,7 +310,20 @@ INFISICAL_PROJECT_ID=your-infisical-project-id
 npm install
 ```
 
-### Step 4: Start Development Server
+### Step 4: Initialize Database Schema
+First, install the Xata CLI:
+```bash
+npm install @xata.io/cli
+```
+
+Then initialize your empty Xata database with the schema from [schema.prisma](prisma/schema.prisma):
+```bash
+npm run schema:initialize
+```
+
+This script will push the schema defined in your local `schema.prisma` file to your empty Xata database.
+
+### Step 5: Start Development Server
 ```bash
 npm run dev
 ```
@@ -318,7 +331,7 @@ This script automatically fetches secrets from Infisical and generates a `.env` 
 
 The server will start on `http://localhost:3000` (or the port specified in your `.env` file).
 
-### Step 7: Access API Documentation
+### Step 6: Access API Documentation
 Open your browser to:
 ```
 http://localhost:3000/api/v1/docs

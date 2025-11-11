@@ -4,7 +4,7 @@
   "description": "Rayon GCP Express PSQL Starter is an opinionated starter kit designed to scaffold backend projects quickly with a wide range of pre-configured features, built-in best practices, and \"batteries included.\" It leverages Google Cloud Platform for deployment and Prisma for database management, allowing you to focus on building functionality.",
   "scripts": {
     "tsoa": "tsoa spec-and-routes",
-    "setup": "npm run env:fetch && npm run prisma:pull && npm run schema-transform && npm run prisma:format && npm run prisma:generate && npm run tsoa",
+    "setup": "npm run env:fetch && npm run prisma:pull && ts-node ./scripts/schema-transform && npm run prisma:format && npm run prisma:generate && npm run tsoa",
     "build": "npm run setup && tsc && tsc-alias",
     "local": "npm run setup && concurrently \"nodemon server.ts\" \"nodemon -x tsoa spec-and-routes\"",
     "dev": "cross-env NODE_ENV=dev npm run local",
@@ -16,7 +16,6 @@
     "watch:types": "tsc -w",
     "env:fetch": "ts-node ./scripts/load-secrets",
     "env:replace": "ts-node ./scripts/env-replace",
-    "schema-transform": "ts-node ./scripts/schema-transform",
     "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
