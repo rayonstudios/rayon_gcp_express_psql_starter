@@ -31,7 +31,10 @@ class XataSchemaInitializer {
       // Step 1: Load optimized migrations
       this.loadOptimizedMigrations();
 
-      // Step 2: Push to Xata
+      // Step 2: Pull existing migrations and merge first migration ID
+      this.pullExistingMigrations();
+
+      // Step 3: Push to Xata
       this.pushToXata();
 
       console.log("\n✅ Schema initialization completed successfully!");
@@ -55,15 +58,37 @@ class XataSchemaInitializer {
     }
 
     this.migrations = JSON.parse(fs.readFileSync(OPTIMIZED_FILE, "utf-8"));
+    // Skip initial create schema migration to avoid conflicts
+    this.migrations = this.migrations.slice(1);
 
     console.log(`   Loaded ${this.migrations.length} optimized migrations`);
   }
 
   /**
-   * Step 2: Push migrations to Xata
+   * Step 2: Pull existing migrations from Xata and copy first migration
+   */
+  private pullExistingMigrations() {
+    console.log("\n📥 Step 2: Pulling existing migrations from Xata...");
+
+    // Clean up existing migrations folder
+    if (fs.existsSync(MIGRATIONS_FOLDER)) {
+      fs.rmSync(MIGRATIONS_FOLDER, { recursive: true, force: true });
+    }
+
+    // Pull existing migrations
+    try {
+      execSync(`xata pull ${BRANCH}`, { stdio: "pipe" });
+    } catch (error) {
+      console.log("   No existing migrations found (fresh database)");
+      return;
+    }
+  }
+
+  /**
+   * Step 3: Push migrations to Xata
    */
   private pushToXata() {
-    console.log("\n📤 Step 2: Pushing migrations to Xata...");
+    console.log("\n📤 Step 3: Pushing migrations to Xata...");
 
     if (this.migrations.length === 0) {
       console.log("   No migrations to push");
@@ -75,14 +100,8 @@ class XataSchemaInitializer {
       ...new Set(this.migrations.map((item) => item.id)),
     ];
 
-    // Clean up and create migrations folder
-    if (fs.existsSync(MIGRATIONS_FOLDER)) {
-      fs.rmSync(MIGRATIONS_FOLDER, { recursive: true, force: true });
-    }
-    fs.mkdirSync(MIGRATIONS_FOLDER, { recursive: true });
-
-    // Write ledger file
-    fs.writeFileSync(
+    // Append ledger file
+    fs.appendFileSync(
       path.join(MIGRATIONS_FOLDER, ".ledger"),
       uniqueMigrationIds.join("\n") + "\n",
       { encoding: "utf-8" }
@@ -103,10 +122,11 @@ class XataSchemaInitializer {
           done: true,
           migration: {
             name: migrationId,
-            operations: operations.map((item) => {
-              const { id, ...rest } = item;
-              return rest;
-            }),
+            operations: operations.map((item: any) => ({
+              ...item,
+              id: undefined,
+              name: undefined,
+            })),
           },
           migrationType: "pgroll",
           name: migrationId,
@@ -129,7 +149,7 @@ class XataSchemaInitializer {
     // Push to Xata
     try {
       console.log(`   Pushing migrations to Xata branch: ${BRANCH}...`);
-      execSync(`xata push ${BRANCH}`, { stdio: "inherit" });
+      execSync(`xata push ${BRANCH} -y`, { stdio: "inherit" });
     } catch (error) {
       console.error("Failed to push migrations to Xata");
       throw error;

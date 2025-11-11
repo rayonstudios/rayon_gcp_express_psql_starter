@@ -1,4 +1,6 @@
 import { execSync } from "child_process";
+import { randomBytes } from "crypto";
+import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 
@@ -15,9 +17,48 @@ import path from "path";
  * 4. Add to git commit
  */
 
+// Load environment variables
+dotenv.config();
+
 const MIGRATIONS_FOLDER = ".xata/migrations";
 const OPTIMIZED_FILE = "xata-migrations.json";
-const BRANCH = "dev";
+
+/**
+ * Extracts branch from DATABASE_URL
+ */
+function getBranchFromDatabaseUrl(): string {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL not found in environment variables");
+  }
+
+  // Extract branch from URL format: /database:branch?params
+  // First, remove query parameters by splitting on ?
+  const urlWithoutParams = databaseUrl.split("?")[0];
+
+  // Extract the path part after the last /
+  const pathMatch = urlWithoutParams.match(/\/([^/]+)$/);
+
+  if (!pathMatch || !pathMatch[1]) {
+    throw new Error(
+      "Could not extract database path from DATABASE_URL. Expected format: postgresql://.../<database>:<branch>?..."
+    );
+  }
+
+  const databasePath = pathMatch[1];
+  const parts = databasePath.split(":");
+
+  if (parts.length < 2) {
+    throw new Error(
+      "Could not extract branch from DATABASE_URL. Expected format: postgresql://.../<database>:<branch>?..."
+    );
+  }
+
+  return parts[1];
+}
+
+const BRANCH = getBranchFromDatabaseUrl();
 
 interface Migration {
   id: string;
@@ -41,6 +82,10 @@ class MigrationSyncer {
 
   constructor(addToGit: boolean = false) {
     this.addToGit = addToGit;
+  }
+
+  private generateMigrationId(): string {
+    return `mig_${randomBytes(10).toString("hex")}`;
   }
 
   async run() {
@@ -229,7 +274,7 @@ class MigrationSyncer {
                 col.nullable = migration.alter_column.nullable;
               }
               if (migration.alter_column.unique !== undefined) {
-                col.unique = migration.alter_column.unique;
+                col.unique = true;
               }
               if (migration.alter_column.type !== undefined) {
                 col.type = migration.alter_column.type;
@@ -274,15 +319,13 @@ class MigrationSyncer {
   }
 
   private generateOptimizedMigrations(operations: any) {
-    let migrationIdCounter = 0;
-
     // Create schemas
     for (const schema of operations.schemas) {
       this.optimizedMigrations.push({
         sql: {
           up: `CREATE SCHEMA "${schema}";`,
         },
-        id: `mig_optimized_${migrationIdCounter++}`,
+        id: this.generateMigrationId(),
       });
     }
 
@@ -293,7 +336,7 @@ class MigrationSyncer {
           sql: {
             up: tableData.originalSql,
           },
-          id: `mig_optimized_${migrationIdCounter++}`,
+          id: this.generateMigrationId(),
         });
       } else {
         const columns: any[] = [];
@@ -306,7 +349,7 @@ class MigrationSyncer {
             name: tableName,
             columns: columns,
           },
-          id: `mig_optimized_${migrationIdCounter++}`,
+          id: this.generateMigrationId(),
         });
       }
 
@@ -317,7 +360,7 @@ class MigrationSyncer {
             up: `ALTER TABLE "${tableName}" REPLICA IDENTITY FULL`,
             onComplete: true,
           },
-          id: `mig_optimized_${migrationIdCounter++}`,
+          id: this.generateMigrationId(),
         });
       }
 
@@ -328,7 +371,7 @@ class MigrationSyncer {
             up: `CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON "${tableName}"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()`,
             onComplete: true,
           },
-          id: `mig_optimized_${migrationIdCounter++}`,
+          id: this.generateMigrationId(),
         });
       }
     }

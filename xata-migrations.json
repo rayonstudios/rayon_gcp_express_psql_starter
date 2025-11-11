@@ -3,7 +3,7 @@
     "sql": {
       "up": "CREATE SCHEMA \"bb_00000000000000000000000000_000000\";"
     },
-    "id": "mig_optimized_0"
+    "id": "mig_b37afae13f5464377bd4"
   },
   {
     "create_table": {
@@ -16,9 +16,7 @@
         {
           "name": "email",
           "type": "text",
-          "unique": {
-            "name": "users_email_unique"
-          }
+          "unique": true
         },
         {
           "name": "bio",
@@ -28,19 +26,16 @@
         {
           "name": "xata_createdat",
           "type": "timestamptz",
-          "nullable": false,
           "default": "now()"
         },
         {
           "name": "xata_updatedat",
           "type": "timestamptz",
-          "nullable": false,
           "default": "now()"
         },
         {
           "name": "xata_id",
           "type": "text",
-          "nullable": false,
           "unique": true,
           "default": "'rec_' || xata_private.xid()",
           "check": {
@@ -51,45 +46,35 @@
         {
           "name": "xata_version",
           "type": "integer",
-          "nullable": false,
           "default": "0"
         },
         {
           "name": "refresh_token_version",
           "type": "int",
-          "nullable": false,
-          "unique": false,
           "default": "'0'",
           "comment": ""
         },
         {
           "name": "role",
           "type": "text",
-          "nullable": false,
-          "unique": false,
           "default": "'user'",
           "comment": ""
         },
         {
           "name": "email_verified",
           "type": "bool",
-          "nullable": false,
-          "unique": false,
           "default": "'false'",
           "comment": ""
         },
         {
           "name": "password_hash",
           "type": "text",
-          "nullable": false,
-          "unique": false,
           "comment": ""
         },
         {
           "name": "photo",
           "type": "text",
           "nullable": true,
-          "unique": false,
           "comment": ""
         },
         {
@@ -113,21 +98,21 @@
         }
       ]
     },
-    "id": "mig_optimized_1"
+    "id": "mig_53cd117003272858a75b"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"users\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_optimized_2"
+    "id": "mig_fa1700b27d7dd1cd9b36"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"users\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_optimized_3"
+    "id": "mig_08697fe32308c5e20233"
   },
   {
     "create_table": {
@@ -146,13 +131,8 @@
           "type": "text"
         },
         {
-          "name": "text",
-          "type": "text"
-        },
-        {
           "name": "xata_id",
           "type": "text",
-          "nullable": false,
           "unique": true,
           "default": "'rec_' || xata_private.xid()",
           "check": {
@@ -163,19 +143,16 @@
         {
           "name": "xata_version",
           "type": "integer",
-          "nullable": false,
           "default": "0"
         },
         {
           "name": "xata_createdat",
           "type": "timestamptz",
-          "nullable": false,
           "default": "now()"
         },
         {
           "name": "xata_updatedat",
           "type": "timestamptz",
-          "nullable": false,
           "default": "now()"
         },
         {
@@ -191,48 +168,30 @@
         {
           "name": "views",
           "type": "int",
-          "nullable": false,
-          "unique": false,
           "default": "'0'",
           "comment": ""
+        },
+        {
+          "name": "text",
+          "type": "text"
         }
       ]
     },
-    "id": "mig_optimized_4"
+    "id": "mig_334f70e389ea74c90efa"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"posts\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_optimized_5"
+    "id": "mig_4b854a92184baf84b17d"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"posts\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_optimized_6"
-  },
-  {
-    "sql": {
-      "up": "CREATE TABLE _prisma_migrations (id varchar(36) PRIMARY KEY NOT NULL, checksum varchar(64) NOT NULL, finished_at timestamptz, migration_name varchar(255) NOT NULL, logs text, rolled_back_at timestamptz, started_at timestamptz NOT NULL DEFAULT now(), applied_steps_count int NOT NULL DEFAULT 0)"
-    },
-    "id": "mig_optimized_7"
-  },
-  {
-    "sql": {
-      "up": "ALTER TABLE \"_prisma_migrations\" REPLICA IDENTITY FULL",
-      "onComplete": true
-    },
-    "id": "mig_optimized_8"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"_prisma_migrations\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_optimized_9"
+    "id": "mig_541f832af328dd0cb2a0"
   },
   {
     "create_table": {
@@ -241,7 +200,6 @@
         {
           "name": "xata_id",
           "type": "text",
-          "nullable": false,
           "unique": true,
           "default": "'rec_' || xata_private.xid()",
           "check": {
@@ -252,52 +210,45 @@
         {
           "name": "xata_version",
           "type": "integer",
-          "nullable": false,
           "default": "0"
         },
         {
           "name": "xata_createdat",
           "type": "timestamptz",
-          "nullable": false,
           "default": "now()"
         },
         {
           "name": "xata_updatedat",
           "type": "timestamptz",
-          "nullable": false,
           "default": "now()"
         },
         {
           "name": "otp",
           "type": "text",
-          "nullable": false,
-          "unique": false,
           "comment": ""
         },
         {
           "name": "email",
           "type": "text",
-          "nullable": false,
-          "unique": false,
           "comment": ""
         }
       ]
     },
-    "id": "mig_optimized_10"
+    "id": "mig_c0e6ed1a90c7ed6b4088"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"otps\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_optimized_11"
+    "id": "mig_400505e265d3c6733e39"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"otps\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_optimized_12"
+    "id": "mig_ad2d3c2128d89f18f95e"
   },
   {
     "create_table": {
@@ -363,21 +314,21 @@
         }
       ]
     },
-    "id": "mig_optimized_13"
+    "id": "mig_ef61ecaee586c17b3de7"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"notifications\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_optimized_14"
+    "id": "mig_0fca62a368a5bf563350"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"notifications\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_optimized_15"
+    "id": "mig_f5d2e7e4a6bc42b5b4e4"
   },
   {
     "create_table": {
@@ -432,20 +383,20 @@
         }
       ]
     },
-    "id": "mig_optimized_16"
+    "id": "mig_a161cb03bf7d076648ef"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"userNotifications\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_optimized_17"
+    "id": "mig_e4607fe59e0420568fad"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"userNotifications\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_optimized_18"
+    "id": "mig_c1ffa738848127a95d68"
   }
 ]

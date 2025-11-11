@@ -24,10 +24,10 @@ model posts {
   labels     String[]
   slug       String
   text       String
-  author_id  String
   id         String   @unique(map: "_pgroll_new_posts_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
   created_at DateTime @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at DateTime @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
+  author_id  String
   views      Int      @default(0)
   author     users    @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users")
 }
@@ -35,6 +35,8 @@ model posts {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
   name                  String
+  email                 String              @unique(map: "_pgroll_new_users_email_key")
+  bio                   String?
   created_at            DateTime            @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at            DateTime            @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
   id                    String              @unique(map: "_pgroll_new_users_xata_id_key") @default(dbgenerated("('rec_'::text || (xata_private.xid())::text)")) @map("xata_id")
@@ -42,10 +44,8 @@ model users {
   role                  String              @default("user")
   email_verified        Boolean             @default(false)
   password_hash         String
-  email                 String              @unique(map: "users_email_unique")
   photo                 String?
   fcm_tokens            String[]
-  bio                   String?
   unread_noti_count     Int?                @default(0)
   photo_sizes           Json                @default("{}") @db.Json
   posts                 posts[]
@@ -58,11 +58,11 @@ model notifications {
   created_at        DateTime            @default(now()) @map("xata_createdat") @db.Timestamptz(6)
   updated_at        DateTime            @default(now()) @map("xata_updatedat") @db.Timestamptz(6)
   title             String
-  body              String
-  image             String?
   link              String?
   metadata          Json?               @db.Json
+  body              String
   event             String
+  image             String?
   userNotifications userNotifications[]
 }
 
