@@ -1,19 +1,14 @@
 import cloudTaskService from "#/src/lib/cloud-task/cloud-task.service";
 import { BE_URL } from "#/src/lib/constants";
+import { firebase } from "#/src/lib/firebase/firebase.service";
 import { pathFromUrl } from "#/src/lib/utils/file.utils";
-import * as admin from "firebase-admin";
 import { uploadFile } from "./file.helpers";
 import { FileUpload, Resizeconfig } from "./file.types";
-
-admin.initializeApp({
-  storageBucket: process.env.STORAGE_BUCKET,
-});
-export const bucket = admin.storage().bucket();
 
 const fetch = async (fileUrl: string) => {
   const filePath = pathFromUrl(fileUrl);
 
-  const [file] = await bucket.file(filePath).get();
+  const [file] = await firebase.bucket.file(filePath).get();
   return file;
 };
 
@@ -27,7 +22,7 @@ const save = async (files: FileUpload[], overwrite = false) => {
 const remove = async (fileUrl: string) => {
   const filePath = pathFromUrl(fileUrl);
 
-  await bucket.file(filePath).delete();
+  await firebase.bucket.file(filePath).delete();
 };
 
 const resizeImg = async (url: string, resizeConfig: Resizeconfig) => {
