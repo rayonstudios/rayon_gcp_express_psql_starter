@@ -23,6 +23,7 @@
     "prettier:write": "prettier . --write",
     "prepare": "husky install",
     "schema:init": "cross-env NODE_ENV=production npm run env:fetch && ts-node ./scripts/xata-initialize",
+    "schema:migrate": "ts-node ./scripts/sync-branch-schema",
     "sync:migrations": "ts-node ./scripts/sync-migrations",
     "create:superadmin": "ts-node ./scripts/create-super-admin"
   },
