@@ -323,7 +323,14 @@ npm run schema:initialize
 
 This script will push the schema defined in your local `schema.prisma` file to your empty Xata database.
 
-### Step 5: Start Development Server
+### Step 5: Create a Super Admin User
+Create a super admin user to get started:
+
+```bash
+npm run create:superadmin -- --email admin@example.com --password your-secure-password
+```
+
+### Step 6: Start Development Server
 ```bash
 npm run dev
 ```
@@ -331,7 +338,7 @@ This script automatically fetches secrets from Infisical and generates a `.env` 
 
 The server will start on `http://localhost:3000` (or the port specified in your `.env` file).
 
-### Step 6: Access API Documentation
+### Step 7: Access API Documentation
 Open your browser to:
 ```
 http://localhost:3000/api/v1/docs
@@ -365,6 +372,12 @@ npm run prisma:format        # Format schema.prisma file
 npm run schema-transform     # Transform Xata conventions to standard naming
 npm run schema:initialize    # Initialize new schema
 npm run sync-xata-schema     # Sync schema changes with Xata
+```
+
+### User Management
+```bash
+npm run create:superadmin    # Create a super admin user with verified email
+                             # Usage: npm run create:superadmin -- -e email -p password [-n name]
 ```
 
 ### Code Generation
