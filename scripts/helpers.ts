@@ -60,10 +60,10 @@ export function isPRMerged(commitMsg: string, fromBranch: string) {
 
 export const getBEUrl = (env: string) => {
   if (env === "production") {
-    return "https://crackuni-be-prod-617502051339.us-central1.run.app/api/v1";
+    return "https://be.starters.rayonstudios.com/api/v1";
   }
   if (env === "test") {
-    return "https://crackuni-be-test-617502051339.us-central1.run.app/api/v1";
+    return "https://be.test.starters.rayonstudios.com/api/v1";
   }
-  return "https://crackuni-be-dev-617502051339.us-central1.run.app/api/v1";
+  return "https://be.dev.starters.rayonstudios.com/api/v1";
 };

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGION: us-central1
+  REGION: us-east1
   REPOSITORY: ${{ github.event.repository.name }}
   SERVICE_NAME: ${{ github.event.repository.name }}-prod
   SHA: ${{ github.sha }}
