@@ -392,6 +392,8 @@ npm run env:fetch    # Fetch secrets from Infisical to .env
 npm run env:replace  # Replace env variables in config files
 ```
 
+**Local Environment Overrides**: Create a `.env.overrides` file (gitignored) to override any Infisical secrets locally without modifying Infisical. Useful for testing with different configurations.
+
 ### Code Quality
 ```bash
 npm run lint                 # Run ESLint
@@ -563,7 +565,7 @@ If your feature involves database schema changes, create a corresponding Xata br
 npx xata branch create feature-your-feature-name --from dev
 ```
 
-Update your `.env` or local environment to point to this Xata branch during development:
+Update your `.env.overrides` file to point to this Xata branch during development:
 ```bash
 DATABASE_URL=your-xata-branch-url
 ```
