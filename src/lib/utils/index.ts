@@ -6,6 +6,14 @@ export const isDevEnv = () => {
   return process.env.NODE_ENV === "dev";
 };
 
+export const isTestEnv = () => {
+  return process.env.NODE_ENV === "test";
+};
+
+export const isProdEnv = () => {
+  return process.env.NODE_ENV === "production";
+};
+
 export function isCloudRun() {
   return process.env.K_SERVICE && process.env.K_REVISION;
 }

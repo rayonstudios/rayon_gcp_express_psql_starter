@@ -1,7 +1,7 @@
 import { fetchSecrets } from "#/scripts/helpers";
 import { APIResponse, Message } from "#/src/lib/types/misc";
 import { GenericObject } from "#/src/lib/types/utils";
-import { isDevEnv, toResponse } from "#/src/lib/utils";
+import { isDevEnv, isProdEnv, toResponse } from "#/src/lib/utils";
 import { Controller, Get, Post, Query, Route, Security, Tags } from "tsoa";
 
 @Route("")
@@ -25,7 +25,9 @@ export class MiscController extends Controller {
   public async miscReloadSecrets(
     @Query() api_key: string
   ): Promise<APIResponse<Message>> {
-    const secrets = await fetchSecrets(isDevEnv() ? "dev" : "production");
+    const secrets = await fetchSecrets(
+      isProdEnv() ? "production" : isDevEnv() ? "dev" : "test"
+    );
     secrets.forEach((secret) => {
       process.env[secret.secretKey] = secret.secretValue;
     });
