@@ -108,3 +108,38 @@ export const getBEUrl = (env: string) => {
   }
   return "https://be.dev.starters.rayonstudios.com/api/v1";
 };
+
+export const secretsEnvToJson = (filePath: string) => {
+  const envContent = fs.readFileSync(filePath, "utf-8");
+  const lines = envContent.split("\n");
+
+  const secrets: Secret[] = lines
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .map((line) => {
+      const [key, ...rest] = line.split("=");
+      return {
+        secretKey: key,
+        secretValue: rest.join("=").trim(),
+      };
+    });
+
+  return secrets;
+};
+
+export function uploadSecrets(env: string, secrets: Secret[]) {
+  return getInfisicalToken().then((accessToken) => {
+    return fetch(`${infisicalBaseUrl}/v4/secrets/batch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        projectId: process.env.INFISICAL_PROJECT_ID,
+        environment: env,
+        secrets,
+      }),
+    }).then((res) => res.json());
+  });
+}

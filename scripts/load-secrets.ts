@@ -1,14 +1,9 @@
-import fs from "fs";
 import dotenv from "dotenv";
+import fs from "fs";
 import { createXataRcFile, fetchSecrets, isCloudRun } from "./helpers";
 
 if (fs.existsSync("./.env.infisical")) {
-  const content = fs.readFileSync("./.env.infisical", "utf-8").trim();
-  const lines = content.split("\n");
-  lines.forEach((line) => {
-    const [key, value] = line.split("=");
-    process.env[key] = value;
-  });
+  dotenv.config({ path: "./.env.infisical" });
 }
 
 (async () => {

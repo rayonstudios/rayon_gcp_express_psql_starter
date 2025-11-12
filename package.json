@@ -16,6 +16,7 @@
     "watch:types": "tsc -w",
     "env:fetch": "ts-node ./scripts/load-secrets",
     "env:replace": "ts-node ./scripts/env-replace",
+    "env:upload": "cross-env NODE_ENV=production ts-node ./scripts/upload-secrets",
     "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
