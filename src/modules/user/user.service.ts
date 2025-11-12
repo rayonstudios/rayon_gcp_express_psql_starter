@@ -26,10 +26,29 @@ async function fetchByEmail(email: string) {
 async function fetchList(filters?: UserFetchList) {
   let query: Parameters<typeof prisma.users.findMany>[0] = {};
 
+  if (filters?.role) query!.where = { ...query?.where, role: filters.role };
+
+  if (filters?.initial_created_at) {
+    query.where = {
+      ...query.where,
+      created_at: {
+        gte: filters.initial_created_at,
+      },
+    };
+  }
+
+  if (filters?.final_created_at) {
+    query.where = {
+      ...query.where,
+      created_at: {
+        ...((query.where?.created_at ?? {}) as object),
+        lte: filters.final_created_at,
+      },
+    };
+  }
+
   if (filters?.search)
     query = withSearch(query, ["name", "bio", "email"], filters.search);
-
-  if (filters?.role) query!.where = { role: filters.role };
 
   const res = await paginatedSortQuery<User>("users", query, filters);
   return res;

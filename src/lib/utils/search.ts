@@ -7,6 +7,7 @@ export const withSearch = <T>(
 ) => {
   const newQuery = { ...query };
   newQuery.where = {
+    ...newQuery.where,
     OR: fields.map((field) => {
       const fieldParts = (field as string).split(".");
       let nestedQuery: GenericObject = {
