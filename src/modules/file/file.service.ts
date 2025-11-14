@@ -9,7 +9,7 @@ import { FileResizeImgInput, FileUpload, Resizeconfig } from "./file.types";
 const fetch = async (fileUrl: string) => {
   const filePath = pathFromUrl(fileUrl);
 
-  const [file] = await firebase.bucket.file(filePath).get();
+  const [file] = await firebase.storage.file(filePath).get();
   return file;
 };
 
@@ -23,7 +23,7 @@ const save = async (files: FileUpload[], overwrite = false) => {
 const remove = async (fileUrl: string) => {
   const filePath = pathFromUrl(fileUrl);
 
-  await firebase.bucket.file(filePath).delete();
+  await firebase.storage.file(filePath).delete();
 };
 
 const triggerResizeImg = async (url: string, resizeConfig: Resizeconfig) => {

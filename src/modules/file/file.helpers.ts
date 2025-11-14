@@ -77,7 +77,7 @@ export async function getResizedImages(
         .toFile(resizedImgPath);
 
       //upload resized image
-      const uploadedFile = await firebase.bucket.upload(resizedImgPath, {
+      const uploadedFile = await firebase.storage.upload(resizedImgPath, {
         destination: newName,
         metadata: {
           metadata,
@@ -124,9 +124,9 @@ export const uploadFile = async (file: FileUpload, overwrite: boolean) => {
 
   const existing = overwrite
     ? [false]
-    : await firebase.bucket.file(file.originalname).exists();
+    : await firebase.storage.file(file.originalname).exists();
 
-  const uploadedFile = await firebase.bucket.upload(file.path, {
+  const uploadedFile = await firebase.storage.upload(file.path, {
     destination: existing[0]
       ? renameDuplicateFile(file.originalname)
       : file.originalname,

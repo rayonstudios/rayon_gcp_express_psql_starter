@@ -35,3 +35,6 @@ const getBeUrl = () => {
 
 export const FE_URL = getFeUrl();
 export const BE_URL = getBeUrl();
+
+export const FIREBASE_AUTH_ENABLED =
+  process.env.FIREBASE_AUTH_ENABLED === "true";

@@ -1,3 +1,5 @@
+import { FIREBASE_AUTH_ENABLED } from "#/src/lib/constants";
+import { firebase } from "#/src/lib/firebase/firebase.service";
 import { paginatedSortQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { withSearch } from "#/src/lib/utils/search";
@@ -64,6 +66,19 @@ async function create(data: UserCreate & { password: string }) {
       unread_noti_count: 0,
     },
   });
+
+  // Create user in Firebase Auth and set custom claims
+  if (FIREBASE_AUTH_ENABLED) {
+    await firebase
+      .auth()
+      .createUser({ uid: user.id, email: user.email, password: data.password })
+      .catch(console.error);
+    await firebase
+      .auth()
+      .setCustomUserClaims(user.id, { role: user.role })
+      .catch(console.error);
+  }
+
   return user;
 }
 
@@ -83,7 +98,27 @@ async function remove(id: string) {
       id,
     },
   });
+  // Remove user from Firebase Auth
+  if (FIREBASE_AUTH_ENABLED) {
+    await firebase.auth().deleteUser(id).catch(console.error);
+  }
+
   return user;
+}
+
+async function updatePassword(id: string, newPassword: string) {
+  const newHashedPassword = await authService.hashPassword(newPassword);
+  await prisma.users.update({
+    where: { id },
+    data: {
+      password_hash: newHashedPassword,
+    },
+  });
+
+  // Update password in Firebase Auth
+  if (FIREBASE_AUTH_ENABLED) {
+    await firebase.auth().updateUser(id, { password: newPassword });
+  }
 }
 
 const userService = {
@@ -93,6 +128,7 @@ const userService = {
   create,
   update,
   remove,
+  updatePassword,
 };
 
 export default userService;

@@ -9,7 +9,7 @@ import { BgJob, BgJobData, BgJobStatus, BgJobType } from "./bg-jobs.types";
 
 const save = async (taskId: string, data: Partial<BgJob>) => {
   await firebase
-    .firestore()
+    .db()
     .collection(COLLECTIONS.BG_TASKS)
     .doc(taskId)
     .set(data, { merge: true });
@@ -17,7 +17,7 @@ const save = async (taskId: string, data: Partial<BgJob>) => {
 
 const get = async (taskId: string): Promise<BgJob | undefined> => {
   const doc = await firebase
-    .firestore()
+    .db()
     .collection(COLLECTIONS.BG_TASKS)
     .doc(taskId)
     .get();
@@ -35,7 +35,7 @@ const create = async (jobData: BgJobData) => {
   const { job, payload, createdBy, scheduledFor } = jobData;
 
   // Create a new task id in Firestore
-  const taskId = firebase.firestore().collection(COLLECTIONS.BG_TASKS).doc().id;
+  const taskId = firebase.db().collection(COLLECTIONS.BG_TASKS).doc().id;
 
   const runsAt = scheduledFor || new Date();
 

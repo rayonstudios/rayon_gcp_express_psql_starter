@@ -18,12 +18,13 @@ if (!admin.apps.length) {
 }
 
 // firebase services
-const firestore = admin.firestore;
-const bucket = admin.storage().bucket();
+const db = admin.firestore;
+const storage = admin.storage().bucket();
 
-firestore().settings({ databaseId: process.env.FIRESTORE_DB_ID });
+db().settings({ databaseId: process.env.FIRESTORE_DB_ID });
 
 export const firebase = {
-  firestore,
-  bucket,
+  db,
+  storage,
+  auth: admin.auth,
 };
