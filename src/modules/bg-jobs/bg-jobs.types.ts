@@ -5,6 +5,7 @@ import { NotificationPayload } from "../notification/notification.types";
 export enum BgJobType {
   SEND_NOTIFICATION = "send-notification",
   RESIZE_IMAGE = "resize-image",
+  DEMO_JOB = "demo-job",
 }
 
 export type BgJobData = { createdBy?: string; scheduledFor?: Date } & (
@@ -15,6 +16,10 @@ export type BgJobData = { createdBy?: string; scheduledFor?: Date } & (
   | {
       job: BgJobType.RESIZE_IMAGE;
       payload: FileResizeImgInput;
+    }
+  | {
+      job: BgJobType.DEMO_JOB;
+      payload: { expectedDuration: number };
     }
 );
 

@@ -15,7 +15,7 @@ import {
 } from "tsoa";
 import { getReqUser } from "../auth/auth.helpers";
 import { bgJobsService } from "./bg-jobs.service";
-import { BgJob, BgJobHandlerBody, BgJobStatus } from "./bg-jobs.types";
+import { BgJob, BgJobHandlerBody, BgJobStatus, BgJobType } from "./bg-jobs.types";
 
 @Route("bg-jobs")
 @Tags("Background Jobs")
@@ -89,5 +89,24 @@ export class BgJobsController extends Controller {
     }
 
     return toResponse({ data: job });
+  }
+
+  @Post("/demo")
+  @Security("jwt")
+  public async createDemoJob(
+    @Request() req: ExReq
+  ): Promise<APIResponse<{ taskId: string }>> {
+    const reqUser = getReqUser(req);
+
+    // Generate random duration between 5-10 seconds
+    const expectedDuration = Math.floor(Math.random() * 5000) + 5000;
+
+    const taskId = await bgJobsService.create({
+      job: BgJobType.DEMO_JOB,
+      payload: { expectedDuration },
+      createdBy: reqUser.id,
+    });
+
+    return toResponse({ data: { taskId } });
   }
 }

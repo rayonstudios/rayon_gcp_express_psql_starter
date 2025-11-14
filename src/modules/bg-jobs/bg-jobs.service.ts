@@ -69,8 +69,45 @@ const create = async (jobData: BgJobData) => {
   return taskId;
 };
 
-const handle = async ({ job, payload }: BgJobData) => {
+const handleDemoJob = async (
+  taskId: string,
+  expectedDuration: number
+): Promise<GenericObject> => {
+  const startTime = Date.now();
+  const updateInterval = 500; // Update progress every 500ms
+
+  // Update progress periodically
+  const progressInterval = setInterval(async () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(Math.floor((elapsed / expectedDuration) * 100), 99);
+
+    await save(taskId, {
+      resultDetails: { progress },
+      updatedAt: new Date(),
+    }).catch((err) =>
+      console.error(`Failed to update progress for demo job ${taskId}:`, err)
+    );
+  }, updateInterval);
+
+  // Wait for the expected duration
+  await new Promise((resolve) => setTimeout(resolve, expectedDuration));
+
+  // Clear the interval
+  clearInterval(progressInterval);
+
+  // Return final result
+  return {
+    progress: 100,
+    completedAt: new Date().toISOString(),
+    duration: expectedDuration,
+  };
+};
+
+const handle = async (
+  handlerBody: BgJobData & { taskId: string }
+): Promise<GenericObject> => {
   let result: GenericObject = {};
+  const { job, payload, taskId } = handlerBody;
 
   switch (job) {
     case BgJobType.SEND_NOTIFICATION:
@@ -79,6 +116,10 @@ const handle = async ({ job, payload }: BgJobData) => {
 
     case BgJobType.RESIZE_IMAGE:
       result = await fileService.resizeImg(payload);
+      break;
+
+    case BgJobType.DEMO_JOB:
+      result = await handleDemoJob(taskId, payload.expectedDuration);
       break;
 
     default:
