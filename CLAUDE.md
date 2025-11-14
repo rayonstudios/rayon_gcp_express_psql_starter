@@ -37,6 +37,8 @@ The codebase uses domain-driven design with feature modules in `src/modules/`. E
 
 **Notifications**: Multi-channel system (in-app, push via FCM, email via Brevo). Event-based triggers create database records + queue background jobs for async delivery.
 
+**Firestore Security**: Client-side Firebase SDK is protected by security rules (`firestore.rules`). Backend Admin SDK bypasses rules.
+
 **Database Design**:
 
 - Foreign keys MUST follow format `<name>_id` (e.g., `user_id`, `author_id`) for schema transform scripts to work
@@ -110,6 +112,12 @@ npm run prettier:check       # Check formatting
 npm run prettier:write       # Fix formatting
 ```
 
+### Firestore Rules
+
+```bash
+firebase deploy --only firestore:rules --project <your-gcp-project-id>
+```
+
 ## Database Workflow
 
 ### Schema Changes
@@ -145,7 +153,8 @@ Pushing to `main`, `dev`, or `test` branches triggers GitHub Actions:
 2. Builds Docker image with Cloud Build (uses layer caching)
 3. Pushes to Artifact Registry
 4. Deploys to Cloud Run with zero-downtime rollout
-5. Auto-migrates schema if PR merge detected (checks commit message)
+5. Deploys Firestore rules
+6. Auto-migrates schema if PR merge detected (checks commit message)
 
 ### Manual Workflows
 
@@ -295,6 +304,11 @@ Run `npm run prisma:generate` after any schema changes.
 
 hCaptcha is automatically disabled in local development (not Cloud Run). If enabled, verify `HCAPTCHA_SECRET` and `HCAPTCHA_SITE_KEY` in Infisical.
 
+### Firestore Rules Not Applied
+
+- Ensure `GCP_SA` service account has `Firebase Rules System` or `Cloud Datastore Owner` role
+- Deploy manually: `firebase deploy --only firestore:rules --project <your-gcp-project-id>`
+
 ## Project-Specific Conventions
 
 ### File Naming
@@ -357,3 +371,4 @@ For feature development:
 - Docker build: `Dockerfile` (multi-stage build)
 - Cloud Build: `cloudbuild.yaml` (with layer caching)
 - GitHub Actions: `.github/workflows/` (dev-deploy.yml, prod-deploy.yml, test-deploy.yml, migrate-branch.yml, reload-secrets.yml)
+- Firebase config: `firebase.json`, `firestore.rules`

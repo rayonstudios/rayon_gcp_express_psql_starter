@@ -12,3 +12,7 @@ swagger.json
 # Xata files
 .xata/migrations*/
 .xatarc
+
+# Firebase files
+firebase-debug.log
+.firebase/
