@@ -19,8 +19,8 @@ const getFeUrl = () => {
   if (process.env.NODE_ENV === "production")
     return "https://fe.starters.rayonstudios.com/";
   if (process.env.NODE_ENV === "test")
-    return "https://fe.test.starters.rayonstudios.com/";
-  return "https://fe.dev.starters.rayonstudios.com/";
+    return "https://rayon-gcp-starter-test.web.app/";
+  return "https://rayon-gcp-starter-dev.web.app/";
 };
 
 const getBeUrl = () => {
@@ -28,9 +28,9 @@ const getBeUrl = () => {
     return `https://be.starters.rayonstudios.com/${ROUTES_BASE_PATH}`;
   }
   if (process.env.NODE_ENV === "test") {
-    return `https://be.test.starters.rayonstudios.com/${ROUTES_BASE_PATH}`;
+    return `https://rayon-gcp-express-psql-starter-test-227506371134.us-east1.run.app/${ROUTES_BASE_PATH}`;
   }
-  return `https://be.dev.starters.rayonstudios.com/${ROUTES_BASE_PATH}`;
+  return `https://rayon-gcp-express-psql-starter-dev-227506371134.us-east1.run.app/${ROUTES_BASE_PATH}`;
 };
 
 export const FE_URL = getFeUrl();
