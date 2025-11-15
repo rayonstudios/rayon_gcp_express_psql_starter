@@ -28,3 +28,8 @@ export const firebase = {
   storage,
   auth: admin.auth,
 };
+
+export const getFirebaseEmail = (email: string) => {
+  const [prefix, domain] = email.split("@");
+  return `${prefix}+${process.env.NODE_ENV || "dev"}@${domain}`;
+};

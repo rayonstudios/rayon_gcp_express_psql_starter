@@ -1,11 +1,10 @@
-import { Role } from "#/src/lib/utils/roles";
-import authService from "#/src/modules/auth/auth.service";
-import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
+dotenv.config();
+import { Role } from "#/src/lib/utils/roles";
+import userService from "#/src/modules/user/user.service";
+import { PrismaClient } from "@prisma/client";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-
-dotenv.config();
 
 const prisma = new PrismaClient();
 
@@ -53,19 +52,12 @@ async function createSuperAdmin() {
     console.log(`Email: ${args.email}`);
     console.log(`Name: ${args.name}`);
 
-    // Hash the password
-    const password_hash = await authService.hashPassword(args.password);
-
-    // Create the super admin user
-    const user = await prisma.users.create({
-      data: {
-        email: args.email,
-        name: args.name,
-        password_hash,
-        role: Role.SUPER_ADMIN,
-        email_verified: true,
-        fcm_tokens: [],
-      },
+    const user = await userService.create({
+      email: args.email,
+      name: args.name,
+      password: args.password,
+      role: Role.SUPER_ADMIN,
+      email_verified: true,
     });
 
     console.log("\n✓ Super admin user created successfully!");

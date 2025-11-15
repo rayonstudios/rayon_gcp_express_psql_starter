@@ -1,5 +1,8 @@
 import { FIREBASE_AUTH_ENABLED } from "#/src/lib/constants";
-import { firebase } from "#/src/lib/firebase/firebase.service";
+import {
+  firebase,
+  getFirebaseEmail,
+} from "#/src/lib/firebase/firebase.service";
 import { paginatedSortQuery } from "#/src/lib/utils/pagination";
 import { prisma } from "#/src/lib/utils/prisma";
 import { withSearch } from "#/src/lib/utils/search";
@@ -56,7 +59,9 @@ async function fetchList(filters?: UserFetchList) {
   return res;
 }
 
-async function create(data: UserCreate & { password: string }) {
+async function create(
+  data: UserCreate & { password: string; email_verified?: boolean }
+) {
   const password_hash = await authService.hashPassword(data.password);
   const user = await prisma.users.create({
     data: {
@@ -71,7 +76,11 @@ async function create(data: UserCreate & { password: string }) {
   if (FIREBASE_AUTH_ENABLED) {
     await firebase
       .auth()
-      .createUser({ uid: user.id, email: user.email, password: data.password })
+      .createUser({
+        uid: user.id,
+        email: getFirebaseEmail(user.email),
+        password: data.password,
+      })
       .catch(console.error);
     await firebase
       .auth()
