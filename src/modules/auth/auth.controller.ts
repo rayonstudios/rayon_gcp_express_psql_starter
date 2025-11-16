@@ -117,7 +117,7 @@ export class AuthController extends Controller {
     });
 
     if (photoUrl) {
-      await fileService.resizeImg(photoUrl, {
+      await fileService.triggerResizeImg(photoUrl, {
         model: "users",
         record_id: user.id,
         img_field: "photo",
@@ -242,12 +242,13 @@ export class AuthController extends Controller {
       return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
-    const newPassword = await authService.hashPassword(password);
+    const user = await userService.fetchByEmail(email);
+    if (!user) {
+      this.setStatus(statusConst.notFound.code);
+      return toResponse({ error: statusConst.notFound.message });
+    }
 
-    await prisma.users.update({
-      where: { email },
-      data: { password_hash: newPassword, email_verified: true },
-    });
+    await userService.updatePassword(user.id, password);
 
     return toResponse({
       data: { message: "Password has been reset successfully!" },
@@ -275,15 +276,7 @@ export class AuthController extends Controller {
       return toResponse({ error: "Invalid old password" });
     }
 
-    const newHashedPassword = await authService.hashPassword(newPassword);
-    await prisma.users.update({
-      where: {
-        id,
-      },
-      data: {
-        password_hash: newHashedPassword,
-      },
-    });
+    await userService.updatePassword(id, newPassword);
 
     return toResponse({
       data: { message: "Password has been changed  successfully" },
@@ -330,12 +323,17 @@ export class AuthController extends Controller {
   public async authRefresh(
     @Request() req: ExReq
   ): Promise<APIResponse<Omit<AuthLoginResponse, "user">>> {
-    const { id } = getReqUser(req);
+    const { id, refresh_token_version } = getReqUser(req);
 
     const user = await userService.fetch(id);
-    if (!user) {
+    if (!user || !user.email_verified) {
       this.setStatus(statusConst.notFound.code);
       return toResponse({ error: statusConst.notFound.message });
+    }
+
+    if (refresh_token_version !== user.refresh_token_version) {
+      this.setStatus(statusConst.unAuthenticated.code);
+      return toResponse({ error: statusConst.unAuthenticated.message });
     }
 
     const tokens = await authService.generateTokens(user);

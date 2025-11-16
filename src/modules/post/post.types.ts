@@ -28,4 +28,6 @@ export interface PostFetchList extends PaginationSortParams<PostSortFields> {
   author_id?: string;
   labels?: string[];
   populate?: boolean;
+  initial_created_at?: Date;
+  final_created_at?: Date;
 }

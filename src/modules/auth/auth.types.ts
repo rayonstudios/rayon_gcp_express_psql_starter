@@ -5,6 +5,7 @@ export type AuthUser = {
   id: string;
   email: string;
   role: Role;
+  refresh_token_version?: number;
 };
 
 export type AuthLoginResponse = {

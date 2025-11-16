@@ -36,6 +36,8 @@ export type UserSortFields = SortFields<
 export interface UserFetchList extends PaginationSortParams<UserSortFields> {
   search?: string;
   role?: Role;
+  initial_created_at?: Date;
+  final_created_at?: Date;
 }
 
 export type UserCreate = Expand<Optional<UserMutable, "bio" | "photo">>;

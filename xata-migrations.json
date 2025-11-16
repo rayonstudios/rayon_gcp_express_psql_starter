@@ -3,7 +3,7 @@
     "sql": {
       "up": "CREATE SCHEMA \"bb_00000000000000000000000000_000000\";"
     },
-    "id": "mig_cs3qts3ujno0fvdn3gng"
+    "id": "mig_b37afae13f5464377bd4"
   },
   {
     "create_table": {
@@ -15,58 +15,104 @@
         },
         {
           "name": "email",
-          "type": "text"
+          "type": "text",
+          "unique": true
         },
         {
           "name": "bio",
-          "type": "text"
+          "type": "text",
+          "nullable": true
         },
         {
           "name": "xata_createdat",
           "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
+          "default": "now()"
         },
         {
           "name": "xata_updatedat",
           "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
+          "default": "now()"
         },
         {
           "name": "xata_id",
           "type": "text",
+          "unique": true,
+          "default": "'rec_' || xata_private.xid()",
           "check": {
             "name": "users_xata_id_length_xata_id",
             "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
+          }
         },
         {
           "name": "xata_version",
           "type": "integer",
-          "default": "0",
-          "nullable": false
+          "default": "0"
+        },
+        {
+          "name": "refresh_token_version",
+          "type": "int",
+          "default": "'0'",
+          "comment": ""
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "default": "'user'",
+          "comment": ""
+        },
+        {
+          "name": "email_verified",
+          "type": "bool",
+          "default": "'false'",
+          "comment": ""
+        },
+        {
+          "name": "password_hash",
+          "type": "text",
+          "comment": ""
+        },
+        {
+          "name": "photo",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "fcm_tokens",
+          "type": "text[]",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unread_noti_count",
+          "type": "int",
+          "nullable": true,
+          "default": "'0'",
+          "comment": ""
+        },
+        {
+          "name": "photo_sizes",
+          "type": "json",
+          "default": "'{}'",
+          "comment": ""
         }
       ]
     },
-    "id": "mig_cs3u66jujno0fvdn3iq0"
+    "id": "mig_53cd117003272858a75b"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"users\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_cs3u66jujno0fvdn3iq0"
+    "id": "mig_fa1700b27d7dd1cd9b36"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"users\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_cs3u66jujno0fvdn3iq0"
+    "id": "mig_08697fe32308c5e20233"
   },
   {
     "create_table": {
@@ -85,11 +131,32 @@
           "type": "text"
         },
         {
-          "name": "text",
-          "type": "text"
+          "name": "xata_id",
+          "type": "text",
+          "unique": true,
+          "default": "'rec_' || xata_private.xid()",
+          "check": {
+            "name": "posts_xata_id_length_xata_id",
+            "constraint": "length(\"xata_id\") < 256"
+          }
         },
         {
-          "name": "author",
+          "name": "xata_version",
+          "type": "integer",
+          "default": "0"
+        },
+        {
+          "name": "xata_createdat",
+          "type": "timestamptz",
+          "default": "now()"
+        },
+        {
+          "name": "xata_updatedat",
+          "type": "timestamptz",
+          "default": "now()"
+        },
+        {
+          "name": "author_id",
           "type": "text",
           "comment": "{\"xata.link\":\"users\"}",
           "references": {
@@ -99,208 +166,32 @@
           }
         },
         {
-          "name": "created_at",
-          "type": "timestamp"
-        },
-        {
           "name": "views",
-          "type": "int"
+          "type": "int",
+          "default": "'0'",
+          "comment": ""
         },
         {
-          "name": "xata_id",
-          "type": "text",
-          "check": {
-            "name": "posts_xata_id_length_xata_id",
-            "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
-        },
-        {
-          "name": "xata_version",
-          "type": "integer",
-          "default": "0",
-          "nullable": false
-        },
-        {
-          "name": "xata_createdat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        },
-        {
-          "name": "xata_updatedat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
+          "name": "text",
+          "type": "text"
         }
       ]
     },
-    "id": "mig_cs3u673ujno0fvdn3ir0"
+    "id": "mig_334f70e389ea74c90efa"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"posts\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_cs3u673ujno0fvdn3ir0"
+    "id": "mig_4b854a92184baf84b17d"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"posts\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_cs3u673ujno0fvdn3ir0"
-  },
-  {
-    "sql": {
-      "up": "CREATE TABLE _prisma_migrations (id varchar(36) PRIMARY KEY NOT NULL, checksum varchar(64) NOT NULL, finished_at timestamptz, migration_name varchar(255) NOT NULL, logs text, rolled_back_at timestamptz, started_at timestamptz NOT NULL DEFAULT now(), applied_steps_count int NOT NULL DEFAULT 0)"
-    },
-    "id": "sql_57ee9ac46eb0f9"
-  },
-  {
-    "set_replica_identity": {
-      "table": "_prisma_migrations",
-      "identity": {
-        "type": "full",
-        "index": ""
-      }
-    },
-    "id": "mig_cs4fond4rshpd1p6dq3g"
-  },
-  {
-    "add_column": {
-      "table": "_prisma_migrations",
-      "column": {
-        "name": "xata_id",
-        "type": "text",
-        "check": {
-          "name": "_prisma_migrations_xata_id_length_xata_id",
-          "constraint": "length(\"xata_id\") < 256"
-        },
-        "unique": true,
-        "default": "'rec_' || xata_private.xid()",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs4fond4rshpd1p6dq3g"
-  },
-  {
-    "add_column": {
-      "table": "_prisma_migrations",
-      "column": {
-        "name": "xata_version",
-        "type": "integer",
-        "default": "0",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs4fond4rshpd1p6dq3g"
-  },
-  {
-    "add_column": {
-      "table": "_prisma_migrations",
-      "column": {
-        "name": "xata_createdat",
-        "type": "timestamptz",
-        "default": "now()",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs4fond4rshpd1p6dq3g"
-  },
-  {
-    "add_column": {
-      "up": "now()",
-      "table": "_prisma_migrations",
-      "column": {
-        "name": "xata_updatedat",
-        "type": "timestamptz",
-        "default": "now()",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs4fond4rshpd1p6dq3g"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"_prisma_migrations\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_cs4fond4rshpd1p6dq3g"
-  },
-  {
-    "create_table": {
-      "name": "companies",
-      "columns": [
-        {
-          "name": "xata_id",
-          "type": "text",
-          "check": {
-            "name": "companies_xata_id_length_xata_id",
-            "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
-        },
-        {
-          "name": "xata_version",
-          "type": "integer",
-          "default": "0",
-          "nullable": false
-        },
-        {
-          "name": "xata_createdat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        },
-        {
-          "name": "xata_updatedat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        }
-      ]
-    },
-    "id": "mig_cs4op9q2go8te7ad5590"
-  },
-  {
-    "sql": {
-      "up": "ALTER TABLE \"companies\" REPLICA IDENTITY FULL",
-      "onComplete": true
-    },
-    "id": "mig_cs4op9q2go8te7ad5590"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"companies\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_cs4op9q2go8te7ad5590"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "role",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "default": "'user'",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs6d35uls18fn8bki9eg"
-  },
-  {
-    "drop_table": {
-      "name": "companies"
-    },
-    "id": "mig_cs6doamls18fn8bki9n0"
+    "id": "mig_541f832af328dd0cb2a0"
   },
   {
     "create_table": {
@@ -309,621 +200,55 @@
         {
           "name": "xata_id",
           "type": "text",
+          "unique": true,
+          "default": "'rec_' || xata_private.xid()",
           "check": {
             "name": "otps_xata_id_length_xata_id",
             "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
+          }
         },
         {
           "name": "xata_version",
           "type": "integer",
-          "default": "0",
-          "nullable": false
+          "default": "0"
         },
         {
           "name": "xata_createdat",
           "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
+          "default": "now()"
         },
         {
           "name": "xata_updatedat",
           "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
+          "default": "now()"
+        },
+        {
+          "name": "otp",
+          "type": "text",
+          "comment": ""
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "comment": ""
         }
       ]
     },
-    "id": "mig_cs6doj6ls18fn8bki9o0"
+    "id": "mig_c0e6ed1a90c7ed6b4088"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"otps\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_cs6doj6ls18fn8bki9o0"
+    "id": "mig_400505e265d3c6733e39"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"otps\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_cs6doj6ls18fn8bki9o0"
-  },
-  {
-    "add_column": {
-      "table": "otps",
-      "column": {
-        "pk": false,
-        "name": "otp",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs6dp36ls18fn8bki9p0"
-  },
-  {
-    "add_column": {
-      "table": "otps",
-      "column": {
-        "pk": false,
-        "name": "email",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs6dp6tqrotshh41vfa0"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "refresh_token_version",
-        "type": "int",
-        "unique": false,
-        "comment": "",
-        "default": "'0'",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs6e3muls18fn8bkia10"
-  },
-  {
-    "drop_column": {
-      "table": "users",
-      "column": "role"
-    },
-    "id": "mig_cs6e7jels18fn8bkiaag"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "role",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs6emt5qrotshh41vfig"
-  },
-  {
-    "drop_column": {
-      "down": "''",
-      "table": "users",
-      "column": "role"
-    },
-    "id": "mig_cs6en1tqrotshh41vfjg"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "role",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "default": "'user'",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs6en8mls18fn8bkiae0"
-  },
-  {
-    "alter_column": {
-      "up": "(SELECT CASE WHEN \"otp\" IS NULL THEN '' ELSE \"otp\" END)",
-      "down": "(SELECT CASE WHEN \"otp\" IS NULL THEN '' ELSE \"otp\" END)",
-      "table": "otps",
-      "column": "otp",
-      "nullable": false
-    },
-    "id": "mig_cs6endmls18fn8bkiaf0"
-  },
-  {
-    "alter_column": {
-      "up": "(SELECT CASE WHEN \"email\" IS NULL THEN '' ELSE \"email\" END)",
-      "down": "(SELECT CASE WHEN \"email\" IS NULL THEN '' ELSE \"email\" END)",
-      "table": "otps",
-      "column": "email",
-      "nullable": false
-    },
-    "id": "mig_cs6engdqrotshh41vflg"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "email_verified",
-        "type": "bool",
-        "unique": false,
-        "comment": "",
-        "default": "'false'",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs6koi5q7u8k14nbshbg"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "password_hash",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs6kov84alekuokhssg0"
-  },
-  {
-    "alter_column": {
-      "up": "\"email\"",
-      "down": "\"email\"",
-      "table": "users",
-      "column": "email",
-      "unique": {
-        "name": "users_email_unique"
-      }
-    },
-    "id": "mig_cs6kpflq7u8k14nbshcg"
-  },
-  {
-    "drop_column": {
-      "down": "''",
-      "table": "posts",
-      "column": "created_at"
-    },
-    "id": "mig_cs6lq504alekuokhssm0"
-  },
-  {
-    "create_table": {
-      "name": "tokens",
-      "columns": [
-        {
-          "name": "xata_id",
-          "type": "text",
-          "check": {
-            "name": "tokens_xata_id_length_xata_id",
-            "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
-        },
-        {
-          "name": "xata_version",
-          "type": "integer",
-          "default": "0",
-          "nullable": false
-        },
-        {
-          "name": "xata_createdat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        },
-        {
-          "name": "xata_updatedat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        }
-      ]
-    },
-    "id": "mig_cs7o15052sg8i85mra1g"
-  },
-  {
-    "sql": {
-      "up": "ALTER TABLE \"tokens\" REPLICA IDENTITY FULL",
-      "onComplete": true
-    },
-    "id": "mig_cs7o15052sg8i85mra1g"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"tokens\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_cs7o15052sg8i85mra1g"
-  },
-  {
-    "add_column": {
-      "table": "tokens",
-      "column": {
-        "pk": false,
-        "name": "acce",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs7o27au8anorsmgfmg0"
-  },
-  {
-    "add_column": {
-      "table": "tokens",
-      "column": {
-        "pk": false,
-        "name": "access_tokens",
-        "type": "text",
-        "unique": true,
-        "comment": "",
-        "default": "'\" \"'",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs7o2kiaummr4an385u0"
-  },
-  {
-    "drop_table": {
-      "name": "tokens"
-    },
-    "id": "mig_cs7ohag52sg8i85mrbm0"
-  },
-  {
-    "create_table": {
-      "name": "tokens",
-      "columns": [
-        {
-          "name": "xata_updatedat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        },
-        {
-          "name": "xata_id",
-          "type": "text",
-          "check": {
-            "name": "tokens_xata_id_length_xata_id",
-            "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
-        },
-        {
-          "name": "xata_version",
-          "type": "integer",
-          "default": "0",
-          "nullable": false
-        },
-        {
-          "name": "xata_createdat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        }
-      ]
-    },
-    "id": "mig_cs7opko52sg8i85mrbpg"
-  },
-  {
-    "sql": {
-      "up": "ALTER TABLE \"tokens\" REPLICA IDENTITY FULL",
-      "onComplete": true
-    },
-    "id": "mig_cs7opko52sg8i85mrbpg"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"tokens\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_cs7opko52sg8i85mrbpg"
-  },
-  {
-    "add_column": {
-      "table": "tokens",
-      "column": {
-        "pk": false,
-        "name": "access_to",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs7ops2u8anorsmgfpt0"
-  },
-  {
-    "drop_table": {
-      "name": "tokens"
-    },
-    "id": "mig_cs7oqag52sg8i85mrbsg"
-  },
-  {
-    "create_table": {
-      "name": "tokens",
-      "columns": [
-        {
-          "name": "xata_id",
-          "type": "text",
-          "check": {
-            "name": "tokens_xata_id_length_xata_id",
-            "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()",
-          "nullable": false
-        },
-        {
-          "name": "xata_version",
-          "type": "integer",
-          "default": "0",
-          "nullable": false
-        },
-        {
-          "name": "xata_createdat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        },
-        {
-          "name": "xata_updatedat",
-          "type": "timestamptz",
-          "default": "now()",
-          "nullable": false
-        }
-      ]
-    },
-    "id": "mig_cs7or3iu8anorsmgfpu0"
-  },
-  {
-    "sql": {
-      "up": "ALTER TABLE \"tokens\" REPLICA IDENTITY FULL",
-      "onComplete": true
-    },
-    "id": "mig_cs7or3iu8anorsmgfpu0"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"tokens\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_cs7or3iu8anorsmgfpu0"
-  },
-  {
-    "add_column": {
-      "table": "tokens",
-      "column": {
-        "pk": false,
-        "name": "access_tokens",
-        "type": "text",
-        "unique": true,
-        "comment": "",
-        "default": "'\"\"'",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs7oroiu8anorsmgfq10"
-  },
-  {
-    "add_column": {
-      "table": "tokens",
-      "column": {
-        "pk": false,
-        "name": "refresh_tokens",
-        "type": "text",
-        "unique": true,
-        "comment": "",
-        "default": "'\"\"'",
-        "nullable": false
-      }
-    },
-    "id": "mig_cs7orv852sg8i85mrbvg"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "refresh_tokens",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "default": "'\"\"'",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs8b69iu8anorsmgg1l0"
-  },
-  {
-    "drop_table": {
-      "name": "tokens"
-    },
-    "id": "mig_cs8cogqu8anorsmgg230"
-  },
-  {
-    "add_column": {
-      "table": "otps",
-      "column": {
-        "pk": false,
-        "name": "test",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs8d4go52sg8i85mrm1g"
-  },
-  {
-    "drop_column": {
-      "table": "users",
-      "column": "refresh_tokens"
-    },
-    "id": "mig_cs8glpn2qe4a1a2lbgb0"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "pk": false,
-        "name": "photo",
-        "type": "text",
-        "unique": false,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cs8hlesjvfnl258s5p8g"
-  },
-  {
-    "drop_column": {
-      "table": "otps",
-      "column": "test"
-    },
-    "id": "mig_cs93jts2vvgao6unecqg"
-  },
-  {
-    "alter_column": {
-      "name": "author_id",
-      "table": "posts",
-      "column": "author"
-    },
-    "id": "mig_cscitnene4je94tb6jf0"
-  },
-  {
-    "alter_column": {
-      "name": "views_count",
-      "table": "posts",
-      "column": "views"
-    },
-    "id": "mig_cscjdpmk0a6tb3s70ipg"
-  },
-  {
-    "alter_column": {
-      "name": "views",
-      "table": "posts",
-      "column": "views_count"
-    },
-    "id": "mig_csd47gnn8cimqt28l6ig"
-  },
-  {
-    "alter_column": {
-      "name": "views_count",
-      "table": "posts",
-      "column": "views"
-    },
-    "id": "mig_csdq401ato8au6r3so30"
-  },
-  {
-    "alter_column": {
-      "name": "views",
-      "table": "posts",
-      "column": "views_count"
-    },
-    "id": "mig_cse07ual3ba0hchq9jg0"
-  },
-  {
-    "alter_column": {
-      "name": "views_count",
-      "table": "posts",
-      "column": "views"
-    },
-    "id": "mig_cse10nql3ba0hchq9jlg"
-  },
-  {
-    "drop_column": {
-      "down": "0",
-      "table": "posts",
-      "column": "views_count"
-    },
-    "id": "mig_csll52132vjpfm25ivqg"
-  },
-  {
-    "add_column": {
-      "table": "posts",
-      "column": {
-        "pk": false,
-        "name": "views",
-        "type": "int",
-        "unique": false,
-        "comment": "",
-        "default": "'0'",
-        "nullable": false
-      }
-    },
-    "id": "mig_csll5dgcllq89mv7ruog"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "fcm_tokens",
-        "type": "text[]",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cumvfr9oos2v56d5q4lg"
-  },
-  {
-    "alter_column": {
-      "up": "\"bio\"",
-      "down": "\"bio\"",
-      "table": "users",
-      "column": "bio",
-      "nullable": true
-    },
-    "id": "mig_cun15nsq7gi7283okq10"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "temp",
-        "type": "text[]",
-        "unique": true,
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cunk5nlv5omnnkb7alf0"
-  },
-  {
-    "drop_column": {
-      "table": "users",
-      "column": "temp"
-    },
-    "id": "mig_cunk6utv5omnnkb7ali0"
+    "id": "mig_ad2d3c2128d89f18f95e"
   },
   {
     "create_table": {
@@ -932,12 +257,12 @@
         {
           "name": "xata_id",
           "type": "text",
+          "unique": true,
+          "default": "'rec_' || xata_private.xid()",
           "check": {
             "name": "notifications_xata_id_length_xata_id",
             "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()"
+          }
         },
         {
           "name": "xata_version",
@@ -953,270 +278,57 @@
           "name": "xata_updatedat",
           "type": "timestamptz",
           "default": "now()"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "comment": ""
+        },
+        {
+          "name": "link",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "body",
+          "type": "text",
+          "comment": ""
+        },
+        {
+          "name": "event",
+          "type": "text",
+          "comment": ""
+        },
+        {
+          "name": "image",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
         }
       ]
     },
-    "id": "mig_cuphn5hdsuem1m1ri79g"
+    "id": "mig_ef61ecaee586c17b3de7"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"notifications\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_cuphn5hdsuem1m1ri79g"
+    "id": "mig_0fca62a368a5bf563350"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"notifications\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_cuphn5hdsuem1m1ri79g"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "notifications",
-      "column": {
-        "name": "title",
-        "type": "text",
-        "comment": ""
-      }
-    },
-    "id": "mig_cuphngefvuvgoi6asaqg"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "notifications",
-      "column": {
-        "name": "message",
-        "type": "text",
-        "comment": ""
-      }
-    },
-    "id": "mig_cupho0hdsuem1m1ri7c0"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "notifications",
-      "column": {
-        "name": "users",
-        "type": "text",
-        "comment": ""
-      }
-    },
-    "id": "mig_cuphoopdsuem1m1ri7d0"
-  },
-  {
-    "add_column": {
-      "table": "notifications",
-      "column": {
-        "name": "url",
-        "type": "text",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cuphp0dv5omnnkb7b5lg"
-  },
-  {
-    "drop_column": {
-      "down": "''",
-      "table": "notifications",
-      "column": "users"
-    },
-    "id": "mig_cuq5cb5v5omnnkb7bbqg"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "notifications",
-      "column": {
-        "name": "users",
-        "type": "text[]",
-        "comment": ""
-      }
-    },
-    "id": "mig_cuq5cv6fvuvgoi6asgk0"
-  },
-  {
-    "add_column": {
-      "table": "notifications",
-      "column": {
-        "name": "link",
-        "type": "text",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cuq5d9mfvuvgoi6asgl0"
-  },
-  {
-    "add_column": {
-      "table": "notifications",
-      "column": {
-        "name": "metadata",
-        "type": "json",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cuq5dvlv5omnnkb7bbrg"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "notifications",
-      "column": {
-        "name": "eventType",
-        "type": "text",
-        "comment": ""
-      }
-    },
-    "id": "mig_cuq5e8mfvuvgoi6asgm0"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "read_count",
-        "type": "int",
-        "comment": "",
-        "default": "'0'",
-        "nullable": true
-      }
-    },
-    "id": "mig_cuq689ufvuvgoi6asgvg"
-  },
-  {
-    "alter_column": {
-      "name": "unread_noti_count",
-      "table": "users",
-      "column": "read_count"
-    },
-    "id": "mig_cuv02gtv5omnnkb7cl4g"
-  },
-  {
-    "alter_column": {
-      "name": "body",
-      "table": "notifications",
-      "column": "message"
-    },
-    "id": "mig_cvhpjvo1g95li4qgjvs0"
-  },
-  {
-    "create_table": {
-      "name": "notifcationGroups",
-      "columns": [
-        {
-          "name": "xata_id",
-          "type": "text",
-          "check": {
-            "name": "notifcationGroups_xata_id_length_xata_id",
-            "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()"
-        },
-        {
-          "name": "xata_version",
-          "type": "integer",
-          "default": "0"
-        },
-        {
-          "name": "xata_createdat",
-          "type": "timestamptz",
-          "default": "now()"
-        },
-        {
-          "name": "xata_updatedat",
-          "type": "timestamptz",
-          "default": "now()"
-        }
-      ]
-    },
-    "id": "mig_cvhpm24ld6k2hsabemvg"
-  },
-  {
-    "sql": {
-      "up": "ALTER TABLE \"notifcationGroups\" REPLICA IDENTITY FULL",
-      "onComplete": true
-    },
-    "id": "mig_cvhpm24ld6k2hsabemvg"
-  },
-  {
-    "sql": {
-      "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"notifcationGroups\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
-      "onComplete": true
-    },
-    "id": "mig_cvhpm24ld6k2hsabemvg"
-  },
-  {
-    "add_column": {
-      "table": "notifcationGroups",
-      "column": {
-        "name": "title",
-        "type": "text",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cvhpmaiglbhgau6csjlg"
-  },
-  {
-    "add_column": {
-      "table": "notifcationGroups",
-      "column": {
-        "name": "users",
-        "type": "text[]",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cvhrk781g95li4qgk0hg"
-  },
-  {
-    "add_column": {
-      "table": "notifcationGroups",
-      "column": {
-        "name": "query",
-        "type": "text",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cvhrki4ld6k2hsabenhg"
-  },
-  {
-    "alter_column": {
-      "name": "image_url",
-      "table": "notifications",
-      "column": "url"
-    },
-    "id": "mig_cvhrkssld6k2hsabenig"
-  },
-  {
-    "alter_column": {
-      "name": "event",
-      "table": "notifications",
-      "column": "eventType"
-    },
-    "id": "mig_cvhrl12glbhgau6csk00"
-  },
-  {
-    "alter_column": {
-      "name": "image",
-      "table": "notifications",
-      "column": "image_url"
-    },
-    "id": "mig_cvhrl4sld6k2hsabenjg"
-  },
-  {
-    "drop_table": {
-      "name": "notifcationGroups"
-    },
-    "id": "mig_cvhs1no1g95li4qgk0j0"
+    "id": "mig_f5d2e7e4a6bc42b5b4e4"
   },
   {
     "create_table": {
@@ -1225,12 +337,12 @@
         {
           "name": "xata_id",
           "type": "text",
+          "unique": true,
+          "default": "'rec_' || xata_private.xid()",
           "check": {
             "name": "userNotifications_xata_id_length_xata_id",
             "constraint": "length(\"xata_id\") < 256"
-          },
-          "unique": true,
-          "default": "'rec_' || xata_private.xid()"
+          }
         },
         {
           "name": "xata_version",
@@ -1246,137 +358,45 @@
           "name": "xata_updatedat",
           "type": "timestamptz",
           "default": "now()"
+        },
+        {
+          "name": "user_id",
+          "type": "text",
+          "comment": "{\"xata.link\":\"users\"}",
+          "references": {
+            "name": "user_id_link",
+            "table": "users",
+            "column": "xata_id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "notification_id",
+          "type": "text",
+          "comment": "{\"xata.link\":\"notifications\"}",
+          "references": {
+            "name": "notification_id_link",
+            "table": "notifications",
+            "column": "xata_id",
+            "on_delete": "CASCADE"
+          }
         }
       ]
     },
-    "id": "mig_cvhs274ld6k2hsabeno0"
+    "id": "mig_a161cb03bf7d076648ef"
   },
   {
     "sql": {
       "up": "ALTER TABLE \"userNotifications\" REPLICA IDENTITY FULL",
       "onComplete": true
     },
-    "id": "mig_cvhs274ld6k2hsabeno0"
+    "id": "mig_e4607fe59e0420568fad"
   },
   {
     "sql": {
       "up": "CREATE TRIGGER xata_maintain_metadata_trigger_pgroll\n  BEFORE INSERT OR UPDATE\n  ON \"userNotifications\"\n  FOR EACH ROW\n  EXECUTE FUNCTION xata_private.maintain_metadata_trigger_pgroll()",
       "onComplete": true
     },
-    "id": "mig_cvhs274ld6k2hsabeno0"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "userNotifications",
-      "column": {
-        "name": "user_id",
-        "type": "text",
-        "comment": "{\"xata.link\":\"users\"}",
-        "references": {
-          "name": "user_id_link",
-          "table": "users",
-          "column": "xata_id",
-          "on_delete": "CASCADE"
-        }
-      }
-    },
-    "id": "mig_cvhs2qsld6k2hsabenp0"
-  },
-  {
-    "add_column": {
-      "up": "''",
-      "table": "userNotifications",
-      "column": {
-        "name": "notification_id",
-        "type": "text",
-        "comment": "{\"xata.link\":\"notifications\"}",
-        "references": {
-          "name": "notification_id_link",
-          "table": "notifications",
-          "column": "xata_id",
-          "on_delete": "CASCADE"
-        }
-      }
-    },
-    "id": "mig_cvhs39cld6k2hsabenq0"
-  },
-  {
-    "drop_column": {
-      "down": "''",
-      "table": "notifications",
-      "column": "users"
-    },
-    "id": "mig_cvhsb5cld6k2hsabenrg"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "photo_sizes",
-        "type": "json",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_cvnoimfo1tkgc98jgmgg"
-  },
-  {
-    "drop_column": {
-      "table": "users",
-      "column": "photo_sizes"
-    },
-    "id": "mig_cvnoor7o1tkgc98jgmi0"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "photo_sizes",
-        "type": "json",
-        "comment": "",
-        "default": "'{}'",
-        "nullable": true
-      }
-    },
-    "id": "mig_cvnop7iglbhgau6cu450"
-  },
-  {
-    "drop_column": {
-      "table": "users",
-      "column": "photo_sizes"
-    },
-    "id": "mig_cvnorbno1tkgc98jgmj0"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "photo_sizes",
-        "type": "json",
-        "comment": "",
-        "default": "'{}'"
-      }
-    },
-    "id": "mig_cvnorono1tkgc98jgmk0"
-  },
-  {
-    "add_column": {
-      "table": "users",
-      "column": {
-        "name": "temp",
-        "type": "text",
-        "comment": "",
-        "nullable": true
-      }
-    },
-    "id": "mig_d07o91q5emce0bnj7dqg"
-  },
-  {
-    "drop_column": {
-      "table": "users",
-      "column": "temp"
-    },
-    "id": "mig_d07ocpa5emce0bnj7drg"
+    "id": "mig_c1ffa738848127a95d68"
   }
 ]

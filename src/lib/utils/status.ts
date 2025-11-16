@@ -24,6 +24,10 @@ export const statusConst = {
       "Access denied. You do not have the required role to perform this action.",
     code: 403,
   },
+  forbidden: {
+    message: "Forbidden. You cannot perform this action.",
+    code: 403,
+  },
   invalidData: {
     message: "Request data is invalid",
     code: 422,

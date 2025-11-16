@@ -1,23 +1,23 @@
-name: Deploy to Google Cloud Run - Dev
+name: Deploy to Google Cloud Run - Test
 
 on:
   push:
     branches:
-      - dev
+      - test
   workflow_dispatch:
 
 env:
   REGION: us-east1
   REPOSITORY_RAW: ${{ github.event.repository.name }}
-  SERVICE_NAME_RAW: ${{ github.event.repository.name }}-dev
+  SERVICE_NAME_RAW: ${{ github.event.repository.name }}-test
   SHA: ${{ github.sha }}
-  NODE_ENV: dev
+  NODE_ENV: test
   INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
   INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
   INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
 
 jobs:
-  deploy_dev:
+  deploy_test:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,13 +39,6 @@ jobs:
           echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_ENV
           echo "IMAGE_URL=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:$SHA" >> $GITHUB_ENV
           echo "CACHE_IMAGE=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:cache" >> $GITHUB_ENV
-
-      # Runs only if a PR merge from main to dev is detected through the commit message
-      - name: Migrate DB schema from main to dev
-        run: |
-          npx tsx ./scripts/xata-migration main dev
-        env:
-          COMMIT_MSG: "${{ github.event.head_commit.message }}"
 
       - id: "auth"
         uses: "google-github-actions/auth@v2"

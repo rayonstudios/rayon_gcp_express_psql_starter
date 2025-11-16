@@ -29,8 +29,28 @@ async function fetchList(filters?: PostFetchList) {
 
   if (filters?.labels) {
     query.where = {
+      ...query.where,
       labels: {
         hasSome: filters.labels,
+      },
+    };
+  }
+
+  if (filters?.initial_created_at) {
+    query.where = {
+      ...query.where,
+      created_at: {
+        gte: filters.initial_created_at,
+      },
+    };
+  }
+
+  if (filters?.final_created_at) {
+    query.where = {
+      ...query.where,
+      created_at: {
+        ...((query.where?.created_at ?? {}) as object),
+        lte: filters.final_created_at,
       },
     };
   }

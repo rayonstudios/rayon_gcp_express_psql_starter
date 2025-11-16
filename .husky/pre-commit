@@ -1,4 +1,13 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+# Check if schema.prisma is being committed
+if git diff --cached --name-only | grep -q "prisma/schema.prisma"; then
+  echo "📊 schema.prisma modified - syncing migrations..."
+  npm run sync:migrations -- --add-to-git || {
+    echo "❌ Failed to sync migrations. Commit aborted."
+    exit 1
+  }
+fi
+
 npx lint-staged

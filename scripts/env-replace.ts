@@ -3,7 +3,7 @@ import { importSecrets } from "./helpers";
 
 importSecrets();
 
-const filePath = `app.yaml`;
+const filePath = "cloud-run.yaml";
 let envFile = fs.readFileSync(filePath, "utf-8");
 const envVariables = envFile.match(/\$[A-Z_d]+/g);
 

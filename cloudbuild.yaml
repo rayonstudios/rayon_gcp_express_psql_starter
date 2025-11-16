@@ -1,0 +1,58 @@
+steps:
+  # Pull previous image for cache (ignore failures)
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        docker pull ${_CACHE_IMAGE} || echo "No cache image found, proceeding without cache"
+
+  # Build with cache
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--cache-from=${_CACHE_IMAGE}"
+      - "--build-arg"
+      - "NODE_ENV=${_NODE_ENV}"
+      - "--build-arg"
+      - "INFISICAL_CLIENT_ID=${_INFISICAL_CLIENT_ID}"
+      - "--build-arg"
+      - "INFISICAL_CLIENT_SECRET=${_INFISICAL_CLIENT_SECRET}"
+      - "--build-arg"
+      - "INFISICAL_PROJECT_ID=${_INFISICAL_PROJECT_ID}"
+      - "-t"
+      - "${_IMAGE_URL}"
+      - "-t"
+      - "${_CACHE_IMAGE}"
+      - "."
+
+  # Cleanup old images (keep only 5 most recent)
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        # Extract repository path by removing the tag part
+        REPO_PATH=$(echo "${_IMAGE_URL}" | cut -d':' -f1)
+
+        # Delete old SHA-tagged images (keep 5 most recent)
+        gcloud artifacts docker images list $$REPO_PATH --limit=999 --sort-by=~CREATE_TIME --format="value(IMAGE)" | \
+        grep -v ":cache" | tail -n +6 | xargs -r gcloud artifacts docker images delete --quiet || true
+
+        # Keep only 2 most recent cache images
+        gcloud artifacts docker images list $$REPO_PATH --limit=999 --sort-by=~CREATE_TIME --format="value(IMAGE)" | \
+        grep ":cache" | tail -n +3 | xargs -r gcloud artifacts docker images delete --quiet || true
+
+# Images to push to registry
+images:
+  - "${_IMAGE_URL}"
+  - "${_CACHE_IMAGE}"
+
+# Define substitution variables
+substitutions:
+  _NODE_ENV: "dev"
+  _INFISICAL_CLIENT_ID: ""
+  _INFISICAL_CLIENT_SECRET: ""
+  _INFISICAL_PROJECT_ID: ""
+  _IMAGE_URL: ""
+  _CACHE_IMAGE: ""
