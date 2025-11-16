@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Specific rule for bg-tasks collection
+    match /bg-tasks/{taskId} {
+      // Allow read only if the user is authenticated and createdBy matches their uid
+      allow read: if request.auth != null && resource.data.createdBy == request.auth.uid;
+
+      // Deny all write operations (create, update, delete)
+      // Backend uses Admin SDK which bypasses these rules
+      allow write: if false;
+    }
+
+    // Default rules: allow read for authenticated users, deny all writes
+    match /{document=**} {
+      // Allow read access only to authenticated Firebase users
+      allow read: if request.auth != null;
+
+      // Deny all write operations (create, update, delete)
+      // Backend uses Admin SDK which bypasses these rules
+      allow write: if false;
+    }
+  }
+}

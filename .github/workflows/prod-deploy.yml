@@ -1,4 +1,4 @@
-name: Deploy to Google App Engine - Prod
+name: Deploy to Google Cloud Run - Prod
 
 on:
   push:
@@ -6,33 +6,41 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  REGION: us-east1
+  REPOSITORY_RAW: ${{ github.event.repository.name }}
+  SERVICE_NAME_RAW: ${{ github.event.repository.name }}-prod
+  SHA: ${{ github.sha }}
+  NODE_ENV: production
+  INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+  INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+  INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+
 jobs:
   deploy_prod:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Load Secrets in Env
         run: |
           npx tsx ./scripts/load-secrets-ci
-        env:
-          NODE_ENV: production
-          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
-          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+          # Export GOOGLE_CLOUD_PROJECT to GitHub Actions environment
+          echo "GOOGLE_CLOUD_PROJECT=$(node -e "const env = require('./.env.json'); console.log(env.GOOGLE_CLOUD_PROJECT)")" >> $GITHUB_ENV
+          # Export FIRESTORE_DB_ID to GitHub Actions environment
+          echo "FIRESTORE_DB_ID=$(node -e "const env = require('./.env.json'); console.log(env.FIRESTORE_DB_ID)")" >> $GITHUB_ENV
 
-      - name: Env Replace in app.yaml
+      - name: Set IMAGE_URL env variable
         run: |
-          npx tsx ./scripts/env-replace
-        env:
-          NODE_ENV: production
+          REPOSITORY=$(echo "$REPOSITORY_RAW" | tr '_' '-')
+          SERVICE_NAME=$(echo "$SERVICE_NAME_RAW" | tr '_' '-')
+          echo "REPOSITORY=$REPOSITORY" >> $GITHUB_ENV
+          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_ENV
+          echo "IMAGE_URL=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:$SHA" >> $GITHUB_ENV
+          echo "CACHE_IMAGE=$REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$REPOSITORY/$SERVICE_NAME:cache" >> $GITHUB_ENV
 
-      - name: Install Xata CLI
-        run: |
-          npm install -g @xata.io/cli@latest
-
-      # Runs only if a PR merge from dev to main is detected through the commit message
+      # Runs only if a PR merge from main to dev is detected through the commit message
       - name: Migrate DB schema from dev to main
         run: |
           npx tsx ./scripts/xata-migration dev main
@@ -42,11 +50,47 @@ jobs:
       - id: "auth"
         uses: "google-github-actions/auth@v2"
         with:
-          credentials_json: "${{ secrets.SECRETJSON_PROD }}"
+          credentials_json: "${{ secrets.GCP_SA }}"
 
       - name: Set up Cloud SDK
         uses: "google-github-actions/setup-gcloud@v2"
 
-      - name: Deploy to Google App Engine
+      - name: Create Artifact Registry repository if it doesn't exist
         run: |
-          gcloud app deploy --appyaml=app.yaml --quiet -v=live --no-cache
+          gcloud artifacts repositories describe $REPOSITORY --location=$REGION || \
+          gcloud artifacts repositories create $REPOSITORY \
+            --repository-format=docker \
+            --location=$REGION \
+            --description="Docker repository for $REPOSITORY"
+
+      - name: Build and push Docker image with Cloud Build
+        run: |
+          gcloud builds submit \
+            --config cloudbuild.yaml \
+            --region=$REGION \
+            --substitutions _NODE_ENV=$NODE_ENV,_INFISICAL_CLIENT_ID=$INFISICAL_CLIENT_ID,_INFISICAL_CLIENT_SECRET=$INFISICAL_CLIENT_SECRET,_INFISICAL_PROJECT_ID=$INFISICAL_PROJECT_ID,_IMAGE_URL=$IMAGE_URL,_CACHE_IMAGE=$CACHE_IMAGE \
+            .
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image=$IMAGE_URL \
+            --region=$REGION \
+            --platform=managed \
+            --allow-unauthenticated \
+            --service-account=$GOOGLE_CLOUD_PROJECT@appspot.gserviceaccount.com \
+            --set-env-vars=NODE_ENV=$NODE_ENV \
+            --cpu=1 \
+            --memory=1Gi \
+            --concurrency=100 \
+            --timeout=3600 \
+            --min-instances=0 \
+            --max-instances=20 \
+            --execution-environment=gen2 \
+            --cpu-throttling \
+            --session-affinity
+
+      - name: Deploy Firestore Rules and Indexes
+        run: |
+          npm install -g firebase-tools
+          firebase deploy --only firestore:$FIRESTORE_DB_ID --project $GOOGLE_CLOUD_PROJECT --force

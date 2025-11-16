@@ -6,7 +6,7 @@ const env = process.argv[2] || "dev";
 
 (async () => {
   await fetch(
-    `${getBEUrl(env)}/api/reload_secrets?key=${process.env.INFISICAL_WEBHOOK_KEY}`,
+    `${getBEUrl(env)}/reload_secrets?key=${process.env.INFISICAL_WEBHOOK_KEY}`,
     {
       method: "POST",
       headers: {

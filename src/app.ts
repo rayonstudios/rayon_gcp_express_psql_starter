@@ -5,6 +5,7 @@ import morgan from "morgan";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
 import { ROUTES_BASE_PATH } from "./lib/constants";
+import { isCloudRun } from "./lib/utils";
 import { globalErrorHandler } from "./middlewares/error.middleware";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware";
 import { setupSwagger } from "./middlewares/swagger.middleware";
@@ -20,17 +21,34 @@ app.use((req, res, next) => {
 app.use(
   urlencoded({
     extended: true,
+    limit: "32mb",
   })
 );
-app.use(json());
+
+app.use(json({ limit: "32mb" }));
 
 // request logger
-app.use(morgan("short"));
+if (!isCloudRun()) {
+  app.use(morgan("short"));
+}
+
+// Health check endpoint for Cloud Run
+app.get("/health", (_, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    env: process.env.NODE_ENV,
+  });
+});
 
 // tsoa register routes
 RegisterRoutes(app, {
   multer: multer({
     dest: "/tmp",
+    limits: {
+      fileSize: 32 * 1024 * 1024, // 32MB limit
+    },
   }),
 });
 

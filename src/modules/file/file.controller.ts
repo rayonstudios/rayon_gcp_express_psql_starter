@@ -1,7 +1,6 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
 import { toResponse } from "#/src/lib/utils";
 import { isImageUrl } from "#/src/lib/utils/file.utils";
-import { prisma } from "#/src/lib/utils/prisma";
 import { statusConst } from "#/src/lib/utils/status";
 import {
   Body,
@@ -18,15 +17,10 @@ import {
 import { getReqUser } from "../auth/auth.helpers";
 import { getResizedImages } from "./file.helpers";
 import fileService from "./file.service";
-import {
-  FileDelete,
-  FileWebhookHandleResize,
-  FileWithImgVariants,
-  Resizeconfig,
-} from "./file.types";
+import { FileDelete, FileWithImgVariants, Resizeconfig } from "./file.types";
 
 @Route("files")
-@Tags("Files")
+@Tags("File")
 export class FileController extends Controller {
   @Post("/")
   @Security("jwt")
@@ -67,30 +61,5 @@ export class FileController extends Controller {
 
     await file.delete();
     return toResponse({ data: { message: "File deleted successfully" } });
-  }
-
-  @Post("/webhooks/handle-img-resize")
-  @Security("api_key")
-  public async fileHandleImageResize(
-    @Body()
-    body: FileWebhookHandleResize
-  ): Promise<APIResponse<Message>> {
-    const urlsMap = await getResizedImages(
-      body.url,
-      body.resize_config.sizes,
-      `${body.resize_config.model}_${body.resize_config.record_id}_${body.resize_config.img_field}.jpg`
-    );
-
-    // update the document field with the new urls
-    const updates = { [`${body.resize_config.img_field}_sizes`]: urlsMap };
-    await (prisma[body.resize_config.model] as any).update({
-      where: { id: body.resize_config.record_id },
-      data: updates,
-    });
-
-    this.setStatus(statusConst.success.code);
-    return toResponse({
-      data: { message: "Image resized successfully" },
-    });
   }
 }

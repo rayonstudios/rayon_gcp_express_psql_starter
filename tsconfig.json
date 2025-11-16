@@ -37,5 +37,9 @@
   "exclude": ["node_modules/**/*", "openapi.json"],
   "ts-node": {
     "require": ["tsconfig-paths/register"]
+  },
+  "tsc-alias": {
+    "verbose": false,
+    "resolveFullPaths": true
   }
 }

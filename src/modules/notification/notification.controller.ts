@@ -1,5 +1,4 @@
 import { APIResponse, ExReq, Message } from "#/src/lib/types/misc";
-import { GenericObject } from "#/src/lib/types/utils";
 import { toResponse } from "#/src/lib/utils";
 import { PaginationSortResponse } from "#/src/lib/utils/pagination";
 import { Role } from "#/src/lib/utils/roles";
@@ -22,22 +21,12 @@ import {
   Notification,
   NotificationEvent,
   NotificationFetchList,
-  NotificationPayload,
   NotificationSendGeneral,
 } from "./notification.types";
 
 @Route("notifications")
 @Tags("Notification")
 export class NotificationController extends Controller {
-  @Post("/webhooks/handle-trigger")
-  @Security("api_key")
-  public async notificationHandleTrigger(
-    @Body() body: NotificationPayload & { taskMetadata: GenericObject }
-  ): Promise<APIResponse<Message>> {
-    await notificationService.send(body);
-    return toResponse({ data: { message: "Notification sent!" } });
-  }
-
   @Post("/general")
   @Security("jwt", [Role.ADMIN])
   public async notificationSendGeneral(

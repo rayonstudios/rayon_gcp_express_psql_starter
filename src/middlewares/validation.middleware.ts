@@ -14,12 +14,23 @@ export function validateData<T extends z.ZodRawShape>(
   isBody: boolean = true
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const { error } = schema.safeParse(isBody ? req.body : req.query);
+    const dataToValidate = isBody ? req.body : req.query;
+
+    const { error } = schema.safeParse(dataToValidate);
 
     if (error) {
+      // Provide more specific error message for missing body
+      let errorMessage = error.message;
+      if (
+        isBody &&
+        (!dataToValidate || Object.keys(dataToValidate).length === 0)
+      ) {
+        errorMessage = `Request body is missing or empty. Expected fields: ${Object.keys(schema.shape).join(", ")}. Original error: ${error.message}`;
+      }
+
       return res
         .status(statusConst.invalidData.code)
-        .json(toResponse({ error: error.message }));
+        .json(toResponse({ error: errorMessage }));
     } else next();
   };
 }
