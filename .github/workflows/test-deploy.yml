@@ -28,6 +28,8 @@ jobs:
           npx tsx ./scripts/load-secrets-ci
           # Export GOOGLE_CLOUD_PROJECT to GitHub Actions environment
           echo "GOOGLE_CLOUD_PROJECT=$(node -e "const env = require('./.env.json'); console.log(env.GOOGLE_CLOUD_PROJECT)")" >> $GITHUB_ENV
+          # Export FIRESTORE_DB_ID to GitHub Actions environment
+          echo "FIRESTORE_DB_ID=$(node -e "const env = require('./.env.json'); console.log(env.FIRESTORE_DB_ID)")" >> $GITHUB_ENV
 
       - name: Set IMAGE_URL env variable
         run: |
@@ -83,5 +85,4 @@ jobs:
 
       - name: Deploy Firestore Rules and Indexes
         run: |
-          npm install -g firebase-tools && \
-          firebase deploy --only firestore --project $GOOGLE_CLOUD_PROJECT --force
+          npx firebase deploy --only firestore --project $GOOGLE_CLOUD_PROJECT --database $FIRESTORE_DB_ID --force
