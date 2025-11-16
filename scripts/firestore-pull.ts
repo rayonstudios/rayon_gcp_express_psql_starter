@@ -2,8 +2,8 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { GoogleAuth } from "google-auth-library";
+import { execSync } from "child_process";
 
-// Load environment variables from .env file
 dotenv.config();
 
 const GOOGLE_CLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT;
@@ -51,126 +51,22 @@ function fetchFromAPI(url: string, token: string) {
   }).then((res) => res.json());
 }
 
-// Transform Firestore API index format to firebase.json format
-function transformIndexToFirebaseFormat(index: any): any {
-  const transformed: any = {
-    collectionGroup: index.name
-      .split("/collectionGroups/")[1]
-      .split("/indexes/")[0],
-    queryScope: index.queryScope,
-    fields: index.fields
-      .filter((field: any) => field.fieldPath !== "__name__")
-      .map((field: any) => {
-        const fieldDef: any = {
-          fieldPath: field.fieldPath,
-        };
-        if (field.order) {
-          fieldDef.order = field.order;
-        }
-        if (field.arrayConfig) {
-          fieldDef.arrayConfig = field.arrayConfig;
-        }
-        return fieldDef;
-      }),
-  };
+async function pullIndexes() {
+  const output = execSync(
+    `firebase firestore:indexes --database=${FIRESTORE_DB_ID} --project=${GOOGLE_CLOUD_PROJECT}`,
+    { encoding: "utf-8" }
+  );
 
-  // Add optional properties if they exist
-  if (index.density) {
-    transformed.density = index.density;
-  }
+  const indexesFilePath = path.join(process.cwd(), "firestore.indexes.json");
+  fs.writeFileSync(indexesFilePath, output, "utf-8");
 
-  return transformed;
+  console.log(`✓ Firestore indexes saved to ${indexesFilePath}`);
 }
 
-async function pullIndexes(token: string) {
+async function pullRules() {
   try {
-    const indexesResponse: any = await fetchFromAPI(
-      `https://firestore.googleapis.com/v1/projects/${GOOGLE_CLOUD_PROJECT}/databases/${FIRESTORE_DB_ID}/collectionGroups/-/indexes`,
-      token
-    );
+    const token = await getAccessToken();
 
-    // Transform indexes to firebase.json format
-    const indexes =
-      indexesResponse.indexes
-        ?.filter((index: any) => index.state === "READY")
-        .map(transformIndexToFirebaseFormat) || [];
-
-    const fieldsResponse: any = await fetchFromAPI(
-      `https://firestore.googleapis.com/v1/projects/${GOOGLE_CLOUD_PROJECT}/databases/${FIRESTORE_DB_ID}/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:*`,
-      token
-    );
-
-    const fieldOverrides: any[] = [];
-    if (fieldsResponse.fields) {
-      for (const field of fieldsResponse.fields) {
-        // Skip the default field configuration
-        if (field.name.includes("/__default__/")) {
-          continue;
-        }
-
-        const collectionGroup = field.name
-          .split("/collectionGroups/")[1]
-          .split("/fields/")[0];
-        const fieldPath = field.name.split("/fields/")[1];
-
-        const override: any = {
-          collectionGroup,
-          fieldPath,
-          indexes: [],
-        };
-
-        // Add TTL config if present
-        if (field.ttlConfig) {
-          override.ttl = true;
-        }
-
-        // Add index configurations
-        if (
-          field.indexConfig &&
-          !field.indexConfig.usesAncestorConfig &&
-          field.indexConfig.indexes
-        ) {
-          override.indexes = field.indexConfig.indexes.map((idx: any) => {
-            const indexDef: any = {
-              queryScope: idx.queryScope,
-            };
-            if (idx.order) {
-              indexDef.order = idx.order;
-            }
-            if (idx.arrayConfig) {
-              indexDef.arrayConfig = idx.arrayConfig;
-            }
-            return indexDef;
-          });
-        }
-
-        if (override.ttl || override.indexes.length > 0) {
-          fieldOverrides.push(override);
-        }
-      }
-    }
-
-    const indexesData = {
-      indexes,
-      fieldOverrides,
-    };
-
-    const indexesFilePath = path.join(process.cwd(), "firestore.indexes.json");
-    fs.writeFileSync(
-      indexesFilePath,
-      JSON.stringify(indexesData, null, 2),
-      "utf-8"
-    );
-
-    console.log(`✓ Firestore indexes saved to ${indexesFilePath}`);
-  } catch (error: any) {
-    console.error("Error pulling indexes:", error.message);
-    throw error;
-  }
-}
-
-async function pullRules(token: string) {
-  try {
     const releaseData: any = await fetchFromAPI(
       `https://firebaserules.googleapis.com/v1/projects/${GOOGLE_CLOUD_PROJECT}/releases/cloud.firestore/${FIRESTORE_DB_ID}`,
       token
@@ -202,7 +98,6 @@ async function pullRules(token: string) {
 }
 
 (async () => {
-  const token = await getAccessToken();
-  await pullIndexes(token);
-  await pullRules(token);
+  await pullIndexes();
+  await pullRules();
 })();
